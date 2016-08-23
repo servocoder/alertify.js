@@ -5,13 +5,18 @@
 
 interface IAlertify {
     reset(): IAlertify;
+    dialog(message: string): IAlertify;
     alert(message: string, onOkay?: Function, onCancel?: Function): IAlertify;
     confirm(message: string, onOkay?: Function, onCancel?: Function): IAlertify;
     prompt(message: string, onOkay?: Function, onCancel?: Function): IAlertify;
-    log(message: string, click?: Function): IAlertify;
-    theme(themeName: string): IAlertify;
+    log(message: string, click?: Function, type?: string): IAlertify;
     success(message: string, click?: Function): IAlertify;
     error(message: string, click?: Function): IAlertify;
+    theme(themeName: string): IAlertify;
+    dialogWidth(width: Number|string): IAlertify;
+    dialogPersistent(bool: Boolean): IAlertify;
+    dialogContainerClass(str: string): IAlertify;
+    dialogButtons(buttons: any): IAlertify;
     cancelBtn(label: string): IAlertify;
     okBtn(label: string): IAlertify;
     delay(time: Number): IAlertify;
@@ -20,6 +25,7 @@ interface IAlertify {
     maxLogItems(max: Number): IAlertify;
     closeLogOnClick(bool: Boolean): IAlertify;
     logPosition(position: string): IAlertify;
+    logContainerClass(str: string): IAlertify;
     setLogTemplate(template: string): IAlertify;
     clearLogs(): IAlertify;
     parent(prt: HTMLElement): IAlertify;
