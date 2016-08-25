@@ -28,6 +28,7 @@ interface IAlertify {
     logContainerClass(str: string): IAlertify;
     setLogTemplate(template: string): IAlertify;
     clearLogs(): IAlertify;
+    closeDialog(): IAlertify;
     parent(prt: HTMLElement): IAlertify;
 }
 

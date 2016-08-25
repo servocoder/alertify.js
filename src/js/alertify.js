@@ -117,6 +117,7 @@
             parent: _defaults.parent,
             dialogWidth: _defaults.dialogWidth,
             dialogPersistent: _defaults.dialogPersistent,
+            dialogContainerClass: _defaults.dialogContainerClass,
             dialogButtonsDefinition: _defaults.dialogButtonsDefinition,
             promptValue: "",
             promptPlaceholder: "",

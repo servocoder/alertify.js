@@ -185,9 +185,12 @@ angular
               </div>
               <div class="mdl-cell mdl-cell--8-col mdl-cell--7-col-desktop right-col">
                 <h5 class="mdl-typeography--headline">Code Example</h5>
-                <pre>alertify.alert("Message");</pre>
+<pre>
+alertify.alert("Message");
+</pre>
               </div>
             </div>
+
             <div class="mdl-grid">
               <div class="mdl-cell mdl-cell--8-col mdl-cell--5-col-desktop left-col">
                 <h5 class="mdl-typeography--headline">Confirm Dialog</h5>
@@ -197,15 +200,27 @@ angular
               <div class="mdl-cell mdl-cell--8-col mdl-cell--7-col-desktop right-col">
                 <h5 class="mdl-typeography--headline">Code Example</h5>
 <pre>
-// confirm dialog
-alertify.confirm("Message", function () {
-    // user clicked "ok"
-}, function() {
-    // user clicked "cancel"
-});
+alertify
+    .confirm("This is a confirm dialog",
+    {
+        click: function (e, ui) {
+            // The click event is in the event variable, so you can use it here.
+            e.preventDefault();
+
+            alertify.success("You've clicked OK");
+        }
+    },{
+        click: function (e, ui) {
+            // The click event is in the event variable, so you can use it here.
+            e.preventDefault();
+
+            alertify.error("You've clicked Cancel");
+        }
+    });
 </pre>
               </div>
             </div>
+
             <div class="mdl-grid">
               <div class="mdl-cell mdl-cell--8-col mdl-cell--5-col-desktop left-col">
                 <h5 class="mdl-typeography--headline">Prompt Dialog</h5>
@@ -216,61 +231,88 @@ alertify.confirm("Message", function () {
                 <h5 class="mdl-typeography--headline">Code Example</h5>
 <pre>
 alertify
-  .defaultValue("Default Value")
-  .prompt("This is a prompt dialog",
-    function (val, ev) {
+    .defaultValue("Default value")
+    .prompt("This is a prompt dialog",
+    {
+        click: function (e, ui, value) {
+            e.preventDefault();
 
-      // The click event is in the event variable, so you can use it here.
-      ev.preventDefault();
-
-      // The value entered is availble in the val variable.
-      alertify.success("You've clicked OK and typed: " + val);
-
-    }, function(ev) {
-
-      // The click event is in the event variable, so you can use it here.
-      ev.preventDefault();
-
-      alertify.error("You've clicked Cancel");
-
-    }
-  });
+            // The value entered is available in the val variable.
+            alertify.success("You've clicked OK and typed: " + value);
+        }
+    },{
+        click: function (e, ui) {
+            e.preventDefault();
+            alertify.error("You've clicked Cancel");
+        }
+    });
 </pre>
               </div>
             </div>
+
             <div class="mdl-grid">
               <div class="mdl-cell mdl-cell--8-col mdl-cell--5-col-desktop left-col">
-                <h5 class="mdl-typeography--headline">Custom Labels</h5>
+                <h5 class="mdl-typeography--headline">Custom Buttons</h5>
                 <p>
                   You're not limited to the "Ok" and "Cancel" button labels.
                   You can easily set your own labels.
                 </p>
-                <a class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect" id="labels">Try It</a>
+                <a class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect" id="custom-labels">Try It</a>
               </div>
               <div class="mdl-cell mdl-cell--8-col mdl-cell--7-col-desktop right-col">
                 <h5 class="mdl-typeography--headline">Code Example</h5>
 <pre>
 alertify
-  .okBtn("Accept")
-  .cancelBtn("Deny")
-  .confirm("Confirm dialog with custom button labels", function (ev) {
+    .confirm("Confirm dialog with custom buttons",
+    {
+        label: "Accept",
+        click: function (e, ui) {
+            e.preventDefault();
+            alertify.success("You've clicked OK");
+        }
+    },{
+        label: "Deny",
+        click: function (e, ui) {
+            e.preventDefault();
+            alertify.error("You've clicked Cancel");
+        }
+    });
+</pre>
+              </div>
+            </div>
 
-      // The click event is in the
-      // event variable, so you can use
-      // it here.
-      ev.preventDefault();
-      alertify.success("You've clicked OK");
-
-  }, function(ev) {
-
-      // The click event is in the
-      // event variable, so you can use
-      // it here.
-      ev.preventDefault();
-
-      alertify.error("You've clicked Cancel");
-
-  });
+            <div class="mdl-grid">
+              <div class="mdl-cell mdl-cell--8-col mdl-cell--5-col-desktop left-col">
+                <h5 class="mdl-typeography--headline">Persistent Buttons</h5>
+                <p>
+                  If you don't need not to automatically close a dialog while clicking a
+                  button, you can set "autoClose" button property to "false". You are able
+                  to close the dialog programmatically inside the "click" callback function.
+                </p>
+                <a class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect" id="autoclose-buttons">Try It</a>
+              </div>
+              <div class="mdl-cell mdl-cell--8-col mdl-cell--7-col-desktop right-col">
+                <h5 class="mdl-typeography--headline">Code Example</h5>
+<pre>
+alertify
+    .confirm("Confirm dialog with persistent buttons",
+    {
+        autoClose: false,
+        click: function (e, ui) {
+            e.preventDefault();
+            alertify.success("This is the persistent button");
+        }
+    },{
+        autoClose: false,
+        click: function (e, ui) {
+            e.preventDefault();
+            if (true) {
+                // method to close currently open dialog
+                alertify.closeDialog();
+            }
+            alertify.error("This is the persistent button, but it was closed programmatically");
+        }
+    });
 </pre>
               </div>
             </div>

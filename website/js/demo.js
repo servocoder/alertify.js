@@ -31,28 +31,90 @@
 
     // ==============================
     // Standard Dialogs
-    demo("#alert", function (ev) {
+    demo("#alert", function (event) {
         alertify.alert("This is an alert dialog");
         return false;
     });
 
-    demo("#confirm", function (ev) {
-        alertify.confirm("This is a confirm dialog", function (ev) {
-            ev.preventDefault();
-            alertify.success("You've clicked OK");
-        }, function(ev) {
-            ev.preventDefault();
-            alertify.error("You've clicked Cancel");
+    demo("#confirm", function (event) {
+        alertify.confirm("This is a confirm dialog",
+        {
+            click: function (e, ui) {
+                e.preventDefault();
+                alertify.success("You've clicked \"OK\"");
+            }
+        },{
+            click: function (e, ui) {
+                e.preventDefault();
+                alertify.error("You've clicked \"Cancel\"");
+            }
         });
     });
 
-    demo("#click-to-close", function (ev) {
+    demo("#prompt", function (event) {
         alertify
-          .closeLogOnClick(true)
-          .log("Click me to close!");
+            .defaultValue("Default value")
+            .prompt("This is a prompt dialog",
+            {
+                click: function (e, ui, value) {
+                    e.preventDefault();
+                    alertify.success("You've clicked \"OK\" and typed: " + value);
+                }
+            },{
+                click: function (e, ui) {
+                    e.preventDefault();
+                    alertify.error("You've clicked \"Cancel\"");
+                }
+            });
     });
 
-    demo("#disable-click-to-close", function (ev) {
+    demo("#custom-labels", function (event) {
+        alertify
+            .confirm("Confirm dialog with custom buttons",
+            {
+                label: "Accept",
+                click: function (e, ui) {
+                    e.preventDefault();
+                    alertify.success("You've clicked \"Accept\"");
+                }
+            },{
+                label: "Deny",
+                click: function (e, ui) {
+                    e.preventDefault();
+                    alertify.error("You've clicked \"Deny\"");
+                }
+            });
+    });
+
+    demo("#autoclose-buttons", function (event) {
+        alertify
+            .confirm("Confirm dialog with persistent buttons",
+            {
+                autoClose: false,
+                click: function (e, ui) {
+                    e.preventDefault();
+                    alertify.success("This is the persistent button");
+                }
+            },{
+                autoClose: false,
+                click: function (e, ui) {
+                    e.preventDefault();
+                    if (true) {
+                        // method to close currently open dialog
+                        alertify.closeDialog();
+                    }
+                    alertify.error("This is the persistent button, but it was closed programmatically");
+                }
+            });
+    });
+
+    demo("#click-to-close", function (event) {
+        alertify
+            .closeLogOnClick(true)
+            .log("Click me to close!");
+    });
+
+    demo("#disable-click-to-close", function (event) {
         alertify
             .closeLogOnClick(true)
             .log("Click me to close!")
@@ -60,20 +122,21 @@
             .log("You can't click to close this!");
     });
 
-    demo("#reset", function (ev) {
+    demo("#reset", function (event) {
         alertify
-            .okBtn("Go For It!")
-            .reset(ev)
-            .alert("Custom values were reset");
+            .reset()
+            .alert("Custom values were reset", {
+                label: "Go For It!"
+            });
     });
 
-    demo("#log-template", function (ev) {
+    demo("#log-template", function (event) {
         alertify
             .setLogTemplate(function (input) { return 'log message: ' + input; })
             .log("This is the message");
     });
 
-    demo("#max-log-items", function (ev) {
+    demo("#max-log-items", function (event) {
         alertify
             .maxLogItems(1)
             .log("This is the first message");
@@ -84,21 +147,9 @@
         }, 1000);
     });
 
-    demo("#prompt", function (ev) {
-        alertify
-            .defaultValue("Default value")
-            .prompt("This is a prompt dialog", function (str, ev) {
-                ev.preventDefault();
-                alertify.success("You've clicked OK and typed: " + str);
-            }, function(ev) {
-                ev.preventDefault();
-                alertify.error("You've clicked Cancel");
-            });
-    });
-
     // ==============================
     // Ajax
-    demo("#ajax", function (ev) {
+    demo("#ajax", function (event) {
         alertify.confirm("Confirm?", function(ev) {
             ev.preventDefault();
             alertify.alert("Successful AJAX after OK");
@@ -110,7 +161,7 @@
 
     // ==============================
     // Promise Aware
-    demo("#promise", function (ev) {
+    demo("#promise", function (event) {
         if ("function" !== typeof Promise) {
             alertify.alert("Your browser doesn't support promises");
             return;
@@ -127,36 +178,36 @@
 
     // ==============================
     // Standard Dialogs
-    demo("#notification", function (ev) {
+    demo("#notification", function (event) {
         alertify.log("Standard log message");
     });
 
-    demo("#notification-html", function (ev) {
+    demo("#notification-html", function (event) {
         alertify.log("<img src='https://placehold.it/256x128'><h3>This is HTML</h3><p>It's great, right?</p>");
     });
 
-    demo("#notification-callback", function(ev) {
+    demo("#notification-callback", function(event) {
         alertify.log("Standard log message with callback", function(ev) {
             ev.preventDefault();
             alertify.log("You clicked the notification");
         });
     });
 
-    demo("#success", function (ev) {
+    demo("#success", function (event) {
         alertify.success("Success log message");
     });
 
-    demo("#success-callback", function(ev) {
+    demo("#success-callback", function(event) {
         alertify.success("Standard log message with callback", function() {
             alertify.success("You clicked the notification");
         });
     });
 
-    demo("#error", function (ev) {
+    demo("#error", function (event) {
         alertify.error("Error log message");
     });
 
-    demo("#error-callback", function(ev) {
+    demo("#error-callback", function(event) {
         alertify.error("Standard log message with callback", function(ev) {
             ev.preventDefault();
             alertify.error("You clicked the notification");
@@ -165,32 +216,19 @@
 
     // ==============================
     // Custom Properties
-    demo("#delay", function (ev) {
+    demo("#delay", function (event) {
         alertify
             .delay(10000)
             .log("Hiding in 10 seconds");
     });
 
-    demo("#forever", function (ev) {
+    demo("#forever", function (event) {
         alertify
             .delay(0)
             .log("Will stay until clicked");
     });
 
-    demo("#labels", function (ev) {
-        alertify
-            .okBtn("Accept")
-            .cancelBtn("Deny")
-            .confirm("Confirm dialog with custom button labels", function (ev) {
-                ev.preventDefault();
-                alertify.success("You've clicked OK");
-            }, function(ev) {
-                ev.preventDefault();
-                alertify.error("You've clicked Cancel");
-            });
-    });
-
-    demo("#log-position", function() {
+    demo("#log-position", function(event) {
         alertify.delay(1000); // This is just to make the demo go faster.
         alertify.log("Default bottom left position");
         setTimeout(function() {
