@@ -6,9 +6,9 @@
 interface IAlertify {
     reset(): IAlertify;
     dialog(message: string): IAlertify;
-    alert(message: string, onOkay?: Function, onCancel?: Function): IAlertify;
-    confirm(message: string, onOkay?: Function, onCancel?: Function): IAlertify;
-    prompt(message: string, onOkay?: Function, onCancel?: Function): IAlertify;
+    alert(message: string, okButton?: any, cancelButton?: any): IAlertify;
+    confirm(message: string, okButton?: any, cancelButton?: any): IAlertify;
+    prompt(message: string, okButton?: any, cancelButton?: any): IAlertify;
     log(message: string, click?: Function, type?: string): IAlertify;
     success(message: string, click?: Function): IAlertify;
     error(message: string, click?: Function): IAlertify;

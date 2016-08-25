@@ -2,6 +2,8 @@
 
     "use strict";
 
+    var logsUI;
+    var dialogUI;
     var TRANSITION_FALLBACK_DURATION = 500;
     var hideElement = function(el) {
         if (! el) {
@@ -14,37 +16,55 @@
             }
         };
 
-        el.classList.remove("show");
-        el.classList.add("hide");
+        removeClass(el, "show");
+        addClass(el, "hide");
+        //el.classList.remove("show");
+        //el.classList.add("hide");
         el.addEventListener("transitionend", removeThis);
 
         // Fallback for no transitions.
         setTimeout(removeThis, TRANSITION_FALLBACK_DURATION);
     };
 
-    function centerDialog(el) {
-        var elRect = el.getBoundingClientRect();
+    function centerDialog(node) {
+        var nodeRect = node.getBoundingClientRect();
         var bodyRect = document.body.getBoundingClientRect();
-        el.style.top = (bodyRect.height / 2 - elRect.height / 2) + 'px';
+        node.style.top = (bodyRect.height / 2 - nodeRect.height / 2) + "px";
     }
 
     function createElementFromHtml(html) {
-        var dummy = document.createElement('div');
+        var dummy = document.createElement("div");
         dummy.innerHTML = html;
         return dummy.firstChild;
     }
 
-    function findElementByPlaceholder(node, text) {
+    function findElementByData(node, name) {
         var nodes = node.length ? node : [node];
-        for (var i = 0; i < nodes.length; i++) {
-            if (nodes[i].innerHTML == text) {
+        for(var i =0; i < nodes.length; i++){
+            if (nodes[i].getAttribute("data-" + name) !== null) {
                 return nodes[i];
             }
             if (nodes[i].childNodes.length) {
-                return findElementByPlaceholder(nodes[i].childNodes, text);
+                return findElementByData(nodes[i].childNodes, name);
             }
         }
     }
+
+    function removeClass(node, className) {
+        var classList = node.getAttribute("class").split(' ');
+        var classIndex = classList.indexOf(className);
+        if(classIndex !== -1) {
+            classList.splice(classIndex, 1);
+        }
+        node.className = classList.join(' ');
+    }
+
+    function addClass(node, className) {
+        var classList = node.getAttribute("class").split(' ');
+        classList.push(className);
+        node.className = classList.join(' ');
+    }
+
 
     function Alertify() {
 
@@ -65,23 +85,25 @@
 
             dialogs: {
                 buttons: {
-                    holder: "<nav>{{buttons}}</nav>",
+                    holder: '<nav data-alertify-btn-holder></nav>',
                     ok: {
                         label: "Ok",
-                        template: "<button class='ok' tabindex='1'>{{label}}</button>"
+                        autoClose: true,
+                        template: '<button data-alertify-btn="ok" tabindex="1"></button>'
                     },
                     cancel: {
                         label: "Cancel",
-                        template: "<button class='cancel' tabindex='2'>{{label}}</button>"
+                        autoClose: true,
+                        template: '<button data-alertify-btn="cancel" tabindex="2"></button>'
                     },
                     default: {
                         label: "Default",
-                        template: "<button class='default' tabindex='3'>{{label}}</button>"
+                        autoClose: false,
+                        template: '<button data-alertify-btn tabindex="3"></button>'
                     }
                 },
-                input: "<input type='text'>",
-                message: "<div class='msg'>{{message}}</div>",
-                log: "<div class='{{class}}'>{{message}}</div>"
+                message: '<div data-alertify-msg></div>',
+                input: '<input data-alertify-input type="text">'
             }
         };
 
@@ -116,31 +138,37 @@
              */
             build: function(item, buttons) {
                 var dom = {};
-                dom.dialog = document.createElement("div");
-                dom.dialog.className = "dialog";
-
                 dom.wrapper = document.createElement("div");
-                dom.wrapper.style.width = this.dialogWidth;
+                dom.wrapper.className = "dialog";
 
-                dom.messageWrapper = createElementFromHtml(this.dialogs.message);
-                dom.message = findElementByPlaceholder(dom.messageWrapper, '{{message}}');
-                dom.message.innerHTML = item.message;
+                dom.dialog = document.createElement("div");
+                dom.dialog.style.width = this.dialogWidth;
+
+                if(item.type === "dialog") {
+                    dom.dialog.innerHTML = item.message;
+                } else {
+                    dom.messageWrapper = createElementFromHtml(this.dialogs.message);
+                    dom.message = findElementByData(dom.messageWrapper, "alertify-msg");
+                    dom.message.innerHTML = item.message;
+                    dom.dialog.appendChild(dom.messageWrapper);
+                }
 
                 dom.buttonsWrapper = createElementFromHtml(this.dialogs.buttons.holder);
-                dom.buttonsHolder = findElementByPlaceholder(dom.buttonsWrapper, '{{buttons}}');
+                dom.buttonsHolder = findElementByData(dom.buttonsWrapper, 'alertify-btn-holder');
 
-                dom.wrapper.appendChild(dom.messageWrapper);
                 if (item.type === "prompt") {
-                    dom.input = createElementFromHtml(this.dialogs.input);
-                    dom.label = dom.input.querySelector("label");
-                    dom.wrapper.appendChild(dom.input);
+                    var inputEl = createElementFromHtml(this.dialogs.input);
+                    dom.input = findElementByData(inputEl, "alertify-input");
+                    dom.label = findElementByData(inputEl, "alertify-input-label");
+                    dom.dialog.appendChild(inputEl);
                 }
-                dom.dialog.appendChild(dom.wrapper);
-                dom.wrapper.appendChild(dom.buttonsWrapper);
+                dom.wrapper.appendChild(dom.dialog);
+                dom.dialog.appendChild(dom.buttonsWrapper);
                 dom.buttonsHolder.innerHTML = "";
 
+                dom.buttons = [];
                 for (var i = 0; i < buttons.length; i++) {
-                    var btnLabelEl = findElementByPlaceholder(buttons[i].element, '{{label}}');
+                    var btnLabelEl = findElementByData(buttons[i].element, "alertify-btn");
                     btnLabelEl.innerHTML = buttons[i].label;
                     dom.buttonsHolder.appendChild(buttons[i].element);
                 }
@@ -154,57 +182,43 @@
 
                 if(item.type === "dialog" && this.dialogButtonsDefinition.length > 0) {
                     for (var i = 0; i < this.dialogButtonsDefinition.length; i++) {
-                        var btn = this.dialogButtonsDefinition[i];
-
-                        switch(btn.type) {
-                            case "ok":
-                                if (!btn.label) btn.label = dButtons.ok.label;
-                                if (!btn.template) btn.template = dButtons.ok.template;
-                                if (!btn.click) btn.click = item.onOkay;
-                                break;
-                            case "cancel":
-                                if (!btn.label) btn.label = dButtons.cancel.label;
-                                if (!btn.template) btn.template = dButtons.cancel.template;
-                                if (!btn.click) btn.click = item.onCancel;
-                                break;
-                            default:
-                                if (!btn.label) btn.label = dButtons.default.label;
-                                if (!btn.template) btn.template = dButtons.default.template;
-                                if (!btn.type) btn.type = "custom";
-                        }
+                        var btn = this.buildButtonObject(this.dialogButtonsDefinition[i]);
                         definitions.push(btn);
                     }
                 } else {
-                    var definitionOk = {
-                        type: "ok",
-                        label: dButtons.ok.label,
-                        template: dButtons.ok.template,
-                        click: item.onOkay
-                    };
-                    var definitionCancel = {
-                        type: "cancel",
-                        label: dButtons.cancel.label,
-                        template: dButtons.cancel.template,
-                        click: item.onCancel
-                    };
+                    item.okButton.type = "ok";
+                    item.cancelButton.type = "cancel";
+                    var btnOk = this.buildButtonObject(item.okButton);
+                    var btnCancel = this.buildButtonObject(item.cancelButton);
 
                     if(item.type === "alert") {
-                        definitions.push(definitionOk);
+                        definitions.push(btnOk);
                     }
                     if(item.type === "confirm" || item.type === "prompt") {
-                        definitions.push(definitionCancel, definitionOk);
+                        definitions.push(btnCancel, btnOk);
                     }
                 }
 
                 for (var k = 0; k < definitions.length; k++) {
                     var definition = definitions[k];
                     definition.element = createElementFromHtml(definition.template);
-                    if(typeof definition.closeOnClick === "undefined") {
-                        definition.closeOnClick = true;
-                    }
                 }
 
                 return definitions;
+            },
+
+            buildButtonObject: function(obj) {
+                var btn = {};
+                var type = obj.type || "default";
+                var db = this.dialogs.buttons;
+
+                btn.type = type;
+                btn.label = (typeof obj.label !== "undefined") ? obj.label : db[type].label;
+                btn.autoClose = (typeof obj.autoClose !== "undefined") ? obj.autoClose : db[type].autoClose;
+                btn.template = (typeof obj.template !== "undefined") ? obj.template : db[type].template;
+                btn.click = (typeof obj.click !== "undefined") ? obj.click : db[type].click;
+
+                return btn;
             },
 
             setCloseLogOnClick: function(bool) {
@@ -244,17 +258,17 @@
              *
              * @param  {String}   message      The message passed from the callee
              * @param  {String}   type         Type of dialog to create
-             * @param  {Function} onOkay       [Optional] Callback function when clicked okay.
-             * @param  {Function} onCancel     [Optional] Callback function when cancelled.
+             * @param  {Object}   okButton     [Optional] Callback function when clicked okay.
+             * @param  {Object}   cancelButton [Optional] Callback function when cancelled.
              *
              * @return {Object}
              */
-            dialog: function(message, type, onOkay, onCancel) {
+            dialog: function(message, type, okButton, cancelButton) {
                 return this.setup({
                     type: type,
                     message: message,
-                    onOkay: onOkay,
-                    onCancel: onCancel
+                    okButton: okButton || {},
+                    cancelButton: cancelButton || {}
                 });
             },
 
@@ -269,12 +283,11 @@
              */
             log: function(message, type, click) {
 
-                var existing = document.querySelectorAll(".alertify-logs > div");
-                if (existing) {
-                    var diff = existing.length - this.logMaxItems;
+                if (logsUI && logsUI.elements.length) {
+                    var diff = logsUI.elements.length - this.logMaxItems;
                     if (diff >= 0) {
                         for (var i = 0, _i = diff + 1; i < _i; i++) {
-                            this.close(existing[i], -1);
+                            this.close(logsUI.elements[i], -1);
                         }
                     }
                 }
@@ -288,34 +301,31 @@
 
             setLogPosition: function(string) {
                 var position = string.split(' ');
-                if( ['top', 'bottom'].indexOf(position[0]) !== -1 &&
-                    ['left', 'right'].indexOf(position[1]) !== -1) {
+                if( ["top", "bottom"].indexOf(position[0]) !== -1 &&
+                    ["left", "right"].indexOf(position[1]) !== -1) {
                     this.logPosition = string;
                 }
             },
 
             setupLogContainer: function() {
 
-                var elLog = document.querySelector(".alertify-logs");
                 var className = this.logContainerClass + " " + this.logPosition;
-                var recreateContainer = (elLog && elLog.parentNode !== this.parent);
+                var recreateContainer = (logsUI && logsUI.container.parentNode !== this.parent);
 
-                if (! elLog || recreateContainer) {
+                if (! logsUI || recreateContainer) {
                     if(recreateContainer) {
-                        hideElement(elLog);
+                        hideElement(logsUI.container);
                     }
-                    elLog = document.createElement("div");
-                    elLog.className = className;
-                    this.parent.appendChild(elLog);
+                    logsUI = {};
+                    logsUI.container = document.createElement("div");
+                    logsUI.container.className = className;
+                    this.parent.appendChild(logsUI.container);
                 }
 
                 // Make sure it's positioned properly.
-                if (elLog.className !== className) {
-                    elLog.className = className;
+                if (logsUI.container.className !== className) {
+                    logsUI.container.className = className;
                 }
-
-                return elLog;
-
             },
 
             /**
@@ -331,7 +341,7 @@
              */
             notify: function(message, type, click) {
 
-                var elLog = this.setupLogContainer();
+                this.setupLogContainer();
                 var log = document.createElement("div");
 
                 log.className = (type || "default");
@@ -346,7 +356,11 @@
                     log.addEventListener("click", click);
                 }
 
-                elLog.appendChild(log);
+                if(!logsUI.elements) {
+                    logsUI.elements = [];
+                }
+                logsUI.elements.push(log);
+                logsUI.container.appendChild(log);
                 setTimeout(function() {
                     log.className += " show";
                 }, 10);
@@ -363,15 +377,15 @@
             setup: function(item) {
 
                 var buttons = this.createButtonsDefinition(item);
-                var dialogElements = this.build(item, buttons);
+                dialogUI = this.build(item, buttons);
 
-                dialogElements.popup = document.createElement("div");
-                dialogElements.popup.className = this.dialogContainerClass + " hide";
-                dialogElements.popup.appendChild(dialogElements.dialog);
+                dialogUI.container = document.createElement("div");
+                dialogUI.container.className = this.dialogContainerClass + " hide";
+                dialogUI.container.appendChild(dialogUI.wrapper);
 
                 var btnOK;
-                var input = dialogElements.input;
-                var label = dialogElements.label;
+                var input = dialogUI.input;
+                var label = dialogUI.label;
 
                 for (var i = 0; i < buttons.length; i++) {
                     if(buttons[i].type === "ok") {
@@ -406,12 +420,12 @@
 
                         switch(btn.type) {
                             case "ok":
-                                listener = (function (button) {return function(ev) {
+                                listener = (function (button) {return function(event) {
                                     if (button.click && "function" === typeof button.click) {
                                         if (input) {
-                                            button.click(input.value, ev);
+                                            button.click(event, dialogUI, input.value);
                                         } else {
-                                            button.click(ev);
+                                            button.click(event, dialogUI);
                                         }
                                     }
 
@@ -419,51 +433,51 @@
                                         resolve({
                                             buttonClicked: "ok",
                                             inputValue: input.value,
-                                            event: ev
+                                            event: event
                                         });
                                     } else {
                                         resolve({
                                             buttonClicked: "ok",
-                                            event: ev
+                                            event: event
                                         });
                                     }
 
-                                    if (button.closeOnClick === true) {
-                                        hideElement(dialogElements.popup);
+                                    if (button.autoClose === true) {
+                                        hideElement(dialogUI.container);
                                     }
                                 }}(btn));
                                 break;
 
                             case "cancel":
-                                listener = (function (button) {return function(ev) {
+                                listener = (function (button) {return function(event) {
                                     if (button.click && "function" === typeof button.click) {
-                                        button.click(ev);
+                                        button.click(event, dialogUI);
                                     }
 
                                     resolve({
                                         buttonClicked: "cancel",
-                                        event: ev
+                                        event: event
                                     });
 
-                                    if (button.closeOnClick === true) {
-                                        hideElement(dialogElements.popup);
+                                    if (button.autoClose === true) {
+                                        hideElement(dialogUI.container);
                                     }
                                 }}(btn));
                                 break;
 
                             default:
-                                listener = (function (button) {return function(ev) {
+                                listener = (function (button) {return function(event) {
                                     if (button.click && "function" === typeof button.click) {
-                                        button.click(ev);
+                                        button.click(event, dialogUI);
                                     }
 
                                     resolve({
                                         buttonClicked: button.type,
-                                        event: ev
+                                        event: event
                                     });
 
-                                    if (button.closeOnClick === true) {
-                                        hideElement(dialogElements.popup);
+                                    if (button.autoClose === true) {
+                                        hideElement(dialogUI.container);
                                     }
                                 }}(btn));
                         }
@@ -472,8 +486,8 @@
                     }
 
                     if (input) {
-                        input.addEventListener("keyup", function(ev) {
-                            if (ev.which === 13) {
+                        input.addEventListener("keyup", function(event) {
+                            if (event.which === 13) {
                                 btnOK.click();
                             }
                         });
@@ -489,21 +503,22 @@
                 }
 
                 if(this.dialogPersistent === false) {
-                    dialogElements.popup.addEventListener("click", function(e) {
-                        if(e.target === this || e.target === dialogElements.dialog) {
-                            hideElement(dialogElements.popup);
+                    dialogUI.container.addEventListener("click", function(e) {
+                        if(e.target === this || e.target === dialogUI.wrapper) {
+                            hideElement(dialogUI.container);
                         }
                     });
                 }
 
                 window.onresize = function(){
-                    centerDialog(dialogElements.dialog);
+                    centerDialog(dialogUI.wrapper);
                 };
 
-                this.parent.appendChild(dialogElements.popup);
+                this.parent.appendChild(dialogUI.container);
                 setTimeout(function() {
-                    dialogElements.popup.classList.remove("hide");
-                    centerDialog(dialogElements.dialog);
+                    removeClass(dialogUI.container, "hide");
+                    //dialogUI.container.classList.remove("hide");
+                    centerDialog(dialogUI.wrapper);
                     if(input && item.type && item.type === "prompt") {
                         input.select();
                         input.focus();
@@ -522,16 +537,6 @@
                 return this;
             },
 
-            okBtn: function(label) {
-                this.dialogs.buttons.ok.label = label;
-                return this;
-            },
-
-            cancelBtn: function(str) {
-                this.dialogs.buttons.cancel.label = str;
-                return this;
-            },
-
             setDelay: function(time) {
                 time = time || 0;
                 this.logDelay = isNaN(time) ? _defaults.logDelay : parseInt(time, 10);
@@ -543,10 +548,10 @@
             },
 
             setDialogWidth: function(width) {
-                if(typeof width === 'number') {
+                if(typeof width === "number") {
                     width += 'px';
                 }
-                this.dialogWidth = (typeof width === 'string') ? width : _defaults.dialogWidth;
+                this.dialogWidth = (typeof width === "string") ? width : _defaults.dialogWidth;
             },
 
             setDialogPersistent: function(bool) {
@@ -560,24 +565,24 @@
             theme: function(themeStr) {
                 switch(themeStr.toLowerCase()) {
                     case "bootstrap":
-                        this.dialogs.buttons.ok.template = "<button class='ok btn btn-primary' tabindex='1'>{{ok}}</button>";
-                        this.dialogs.buttons.cancel.template = "<button class='cancel btn btn-default' tabindex='2'>{{cancel}}</button>";
-                        this.dialogs.input = "<input type='text' class='form-control'>";
+                        this.dialogs.buttons.ok.template = '<button data-alertify-btn="ok" class="ok btn btn-primary" tabindex="1"></button>';
+                        this.dialogs.buttons.cancel.template = '<button data-alertify-btn="cancel" class="cancel btn btn-default" tabindex="2"></button>';
+                        this.dialogs.input = "<input data-alertify-input class='form-control' type='text'>";
                         break;
                     case "purecss":
-                        this.dialogs.buttons.ok.template = "<button class='ok pure-button' tabindex='1'>{{ok}}</button>";
-                        this.dialogs.buttons.cancel.template = "<button class='cancel pure-button' tabindex='2'>{{cancel}}</button>";
+                        this.dialogs.buttons.ok.template = '<button data-alertify-btn="ok" class="ok pure-button" tabindex="1"></button>';
+                        this.dialogs.buttons.cancel.template = '<button data-alertify-btn="cancel" class="cancel pure-button" tabindex="2"></button>';
                         break;
                     case "mdl":
                     case "material-design-light":
-                        this.dialogs.buttons.ok.template = "<button class='ok mdl-button mdl-js-button mdl-js-ripple-effect'  tabindex='1'>{{ok}}</button>";
-                        this.dialogs.buttons.cancel.template = "<button class='cancel mdl-button mdl-js-button mdl-js-ripple-effect' tabindex='2'>{{cancel}}</button>";
-                        this.dialogs.input = "<div class='mdl-textfield mdl-js-textfield'><input class='mdl-textfield__input'><label class='md-textfield__label'></label></div>";
+                        this.dialogs.buttons.ok.template = '<button data-alertify-btn="ok" class="ok mdl-button mdl-js-button mdl-js-ripple-effect"  tabindex="1"></button>';
+                        this.dialogs.buttons.cancel.template = '<button data-alertify-btn="cancel" class="cancel mdl-button mdl-js-button mdl-js-ripple-effect" tabindex="2"></button>';
+                        this.dialogs.input = '<div class="mdl-textfield mdl-js-textfield"><input data-alertify-input class="mdl-textfield__input"><label data-alertify-input-label class="md-textfield__label"></label></div>';
                         break;
                     case "angular-material":
-                        this.dialogs.buttons.ok.template = "<button class='ok md-primary md-button' tabindex='1'>{{ok}}</button>";
-                        this.dialogs.buttons.cancel.template = "<button class='cancel md-button' tabindex='2'>{{cancel}}</button>";
-                        this.dialogs.input = "<div layout='column'><md-input-container md-no-float><input type='text'></md-input-container></div>";
+                        this.dialogs.buttons.ok.template = '"<button data-alertify-btn="ok" class="ok md-primary md-button" tabindex="1"></button>"';
+                        this.dialogs.buttons.cancel.template = '<button data-alertify-btn="cancel" class="cancel md-button" tabindex="2"></button>';
+                        this.dialogs.input = '<div layout="column"><md-input-container md-no-float><input data-alertify-input type="text"></md-input-container></div>';
                         break;
                     case "default":
                     default:
@@ -603,8 +608,6 @@
                 this.logCloseOnClick = _defaults.logCloseOnClick;
                 this.logContainerClass = _defaults.logContainerClass;
                 this.logTemplateMethod = null;
-                this.okBtn(_defaults.dialogs.buttons.ok.label);
-                this.cancelBtn(_defaults.dialogs.buttons.cancel.label);
             },
 
             injectCSS: function() {
@@ -641,14 +644,14 @@
             dialog: function(message) {
                 return _alertify.dialog(message, "dialog", null, null) || this;
             },
-            alert: function(message, onOkay, onCancel) {
-                return _alertify.dialog(message, "alert", onOkay, onCancel) || this;
+            alert: function(message, okButton, cancelButton) {
+                return _alertify.dialog(message, "alert", okButton , cancelButton) || this;
             },
-            confirm: function(message, onOkay, onCancel) {
-                return _alertify.dialog(message, "confirm", onOkay, onCancel) || this;
+            confirm: function(message, okButton, cancelButton) {
+                return _alertify.dialog(message, "confirm", okButton, cancelButton) || this;
             },
-            prompt: function(message, onOkay, onCancel) {
-                return _alertify.dialog(message, "prompt", onOkay, onCancel) || this;
+            prompt: function(message, okButton, cancelButton) {
+                return _alertify.dialog(message, "prompt", okButton, cancelButton) || this;
             },
             log: function(message, click, type) {
                 _alertify.log(message, type, click);
@@ -680,14 +683,6 @@
             },
             dialogButtons: function(buttons) {
                 _alertify.setDialogButtons(buttons);
-                return this;
-            },
-            cancelBtn: function(label) {
-                _alertify.cancelBtn(label);
-                return this;
-            },
-            okBtn: function(label) {
-                _alertify.okBtn(label);
                 return this;
             },
             delay: function(time) {
@@ -723,7 +718,15 @@
                 return this;
             },
             clearLogs: function() {
-                _alertify.setupLogContainer().innerHTML = "";
+                if(logsUI) {
+                    logsUI.container.innerHTML = "";
+                }
+                return this;
+            },
+            closeDialog: function() {
+                if(dialogUI) {
+                    hideElement(dialogUI.container);
+                }
                 return this;
             },
             version: _alertify.version

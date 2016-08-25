@@ -45,13 +45,10 @@
     box-sizing: border-box;
 }
 
-.alertify .dialog {
-    padding: 12px;
-}
-
 .alertify .dialog,
 .alertify .alert {
     width: 100%;
+    padding: 0;
     margin: 0 auto;
     position: relative;
     top: 50%;
@@ -62,51 +59,49 @@
     width: 400px;
     max-width: 95%;
     margin: 0 auto;
-    text-align: center;
-    padding: 12px;
+    text-align: left;
+    padding: 20px;
     background: #fff;
     box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.14), 0 4px 5px 0 rgba(0, 0, 0, 0.098), 0 1px 10px 0 rgba(0, 0, 0, 0.084);
 }
 
-.alertify .dialog .msg,
-.alertify .alert .msg {
-    padding: 12px;
-    margin-bottom: 12px;
-    margin: 0;
+.alertify .dialog [data-alertify-msg],
+.alertify .alert [data-alertify-msg] {
+    padding-bottom: 12px;
     text-align: left;
 }
 
-.alertify .dialog input:not(.form-control),
-.alertify .alert input:not(.form-control) {
-    margin-bottom: 15px;
+.alertify .dialog input[data-alertify-input],
+.alertify .alert input[data-alertify-input] {
+    margin-bottom: 12px;
     width: 100%;
     font-size: 100%;
-    padding: 12px;
+    padding: 8px;
 }
 
-.alertify .dialog input:not(.form-control):focus,
-.alertify .alert input:not(.form-control):focus {
+.alertify .dialog input[data-alertify-input]:focus,
+.alertify .alert input[data-alertify-input]:focus {
     outline-offset: -2px;
 }
 
-.alertify .dialog nav, .alertify .alert nav {
+.alertify .dialog [data-alertify-btn-holder],
+.alertify .alert [data-alertify-btn-holder] {
     text-align: right;
 }
 
-.alertify .dialog nav button:not(.btn):not(.pure-button):not(.md-button):not(.mdl-button),
-.alertify .alert nav button:not(.btn):not(.pure-button):not(.md-button):not(.mdl-button) {
+.alertify .dialog [data-alertify-btn-holder] [data-alertify-btn],
+.alertify .alert [data-alertify-btn-holder] [data-alertify-btn] {
     background: transparent;
     box-sizing: border-box;
     color: rgba(0, 0, 0, 0.87);
     position: relative;
     outline: 0;
-    border: 0;
     display: inline-block;
     -ms-flex-align: center;
     -ms-grid-row-align: center;
     align-items: center;
     padding: 0 6px;
-    margin: 6px 8px;
+    margin: 6px 0 0 15px;
     line-height: 36px;
     min-height: 36px;
     white-space: nowrap;
@@ -116,22 +111,24 @@
     font-size: 14px;
     text-decoration: none;
     cursor: pointer;
-    border: 1px solid transparent;
+    border: 1px solid #DBDBDB;
     border-radius: 2px;
 }
 
-.alertify .dialog nav button:not(.btn):not(.pure-button):not(.md-button):not(.mdl-button):hover,
-.alertify .dialog nav button:not(.btn):not(.pure-button):not(.md-button):not(.mdl-button):active, .alertify .alert nav button:not(.btn):not(.pure-button):not(.md-button):not(.mdl-button):hover, .alertify .alert nav button:not(.btn):not(.pure-button):not(.md-button):not(.mdl-button):active {
+.alertify .dialog [data-alertify-btn-holder] [data-alertify-btn]:hover,
+.alertify .dialog [data-alertify-btn-holder] [data-alertify-btn]:active,
+.alertify .alert [data-alertify-btn-holder] [data-alertify-btn]:hover,
+.alertify .alert [data-alertify-btn-holder] [data-alertify-btn]:active {
     background-color: rgba(0, 0, 0, 0.05);
 }
 
-.alertify .dialog nav button:not(.btn):not(.pure-button):not(.md-button):not(.mdl-button):focus,
-.alertify .alert nav button:not(.btn):not(.pure-button):not(.md-button):not(.mdl-button):focus {
+.alertify .dialog [data-alertify-btn-holder] [data-alertify-btn]:focus,
+.alertify .alert [data-alertify-btn-holder] [data-alertify-btn]:focus {
     border: 1px solid rgba(0, 0, 0, 0.1);
 }
 
-.alertify .dialog nav button.btn,
-.alertify .alert nav button.btn {
+.alertify .dialog [data-alertify-btn-holder] button.btn,
+.alertify .alert [data-alertify-btn-holder] button.btn {
     margin: 6px 4px;
 }
 
@@ -183,7 +180,8 @@
     opacity: 1;
 }
 
-.alertify-logs.right > *, .alertify-logs.right > *.hide {
+.alertify-logs.right > *,
+.alertify-logs.right > *.hide {
     right: -110%;
     opacity: 0;
 }
