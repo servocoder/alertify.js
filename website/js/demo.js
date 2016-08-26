@@ -30,35 +30,47 @@
     var ga = ga || function() {};
 
     // ==============================
-    // Standard Dialogs
+    // Alert Dialog
     demo("#alert", function (event) {
         alertify.alert("This is an alert dialog");
-        return false;
     });
 
+    // ==============================
+    // Confirm Dialog
     demo("#confirm", function (event) {
-        alertify.confirm("This is a confirm dialog",
-        {
-            click: function (e, ui) {
-                e.preventDefault();
-                alertify.success("You've clicked \"OK\"");
-            }
-        },{
-            click: function (e, ui) {
-                e.preventDefault();
-                alertify.error("You've clicked \"Cancel\"");
-            }
-        });
+        alertify
+            .confirm("This is a confirm dialog",
+            {
+                click: function (e, ui) {
+                    // The click event is in the event variable, so you can use it here.
+                    e.preventDefault();
+
+                    alertify.success("You've clicked \"OK\"");
+                }
+            },{
+                click: function (e, ui) {
+                    // The click event is in the event variable, so you can use it here.
+                    e.preventDefault();
+
+                    alertify.error("You've clicked \"Cancel\"");
+                }
+            });
     });
 
+    // ==============================
+    // Prompt Dialog
     demo("#prompt", function (event) {
         alertify
             .defaultValue("Default value")
             .prompt("This is a prompt dialog",
             {
-                click: function (e, ui, value) {
+                click: function (e, ui) {
                     e.preventDefault();
-                    alertify.success("You've clicked \"OK\" and typed: " + value);
+
+                    // the value entered in the prompt input
+                    var inputValue = ui.getInputValue();
+
+                    alertify.success("You've clicked \"OK\" and typed: " + inputValue);
                 }
             },{
                 click: function (e, ui) {
@@ -68,9 +80,11 @@
             });
     });
 
+    // ==============================
+    // Custom Button Labels
     demo("#custom-labels", function (event) {
         alertify
-            .confirm("Confirm dialog with custom buttons",
+            .confirm("Confirm dialog with custom button labels",
             {
                 label: "Accept",
                 click: function (e, ui) {
@@ -86,6 +100,8 @@
             });
     });
 
+    // ==============================
+    // Persistent Buttons
     demo("#autoclose-buttons", function (event) {
         alertify
             .confirm("Confirm dialog with persistent buttons",
@@ -101,11 +117,76 @@
                     e.preventDefault();
                     if (true) {
                         // method to close currently open dialog
-                        alertify.closeDialog();
+                        ui.closeDialog();
                     }
                     alertify.error("This is the persistent button, but it was closed programmatically");
                 }
             });
+    });
+
+    // ==============================
+    // Ajax - Multiple Dialog
+    demo("#ajax", function (event) {
+        alertify
+            .confirm("Ajax requests",
+            {
+                autoClose: false,
+                click: function (e, ui) {
+                    e.preventDefault();
+
+                    // AJAX request delay imitation
+                    setTimeout(function () {
+
+                        // updates message in the current dialog
+                        ui.updateMessage("Successful AJAX after \"OK\".<br>Without opening a new dialog.");
+
+                        // center message vertically due to dialog height might be changed
+                        ui.centerDialog();
+
+                        alertify.log("Dialog message was updated using AJAX request.");
+                    }, 200);
+                }
+            },{
+                click: function (e, ui) {
+                    e.preventDefault();
+
+                    // AJAX request delay imitation
+                    setTimeout(function () {
+
+                        // notification in the new dialog window
+                        alertify.alert("Successful AJAX after \"Cancel\"");
+                    }, 200);
+                }
+            });
+    });
+
+    // ==============================
+    // Promise Aware
+    demo("#promise", function (event) {
+        if ("function" !== typeof Promise) {
+            alertify.alert("Your browser doesn't support promises");
+            return;
+        }
+
+        alertify
+            .confirm("Confirm?").then(
+                function (resolved) {
+
+                    // The click event object is accessible via "event" property.
+                    resolved.event.preventDefault();
+
+                    // Button object is accessible via "button" property.
+                    alertify.alert("You clicked the " + resolved.button.label + " button!");
+                },
+                function(rejected) {
+
+                    // The click event object is accessible via "event" property.
+                    rejected.event.preventDefault();
+
+                    // Button object is accessible via "button" property.
+                    alertify.alert("You clicked the " + rejected.button.label + " button!");
+                }
+        );
     });
 
     demo("#click-to-close", function (event) {
@@ -145,35 +226,6 @@
         setTimeout(function() {
             alertify.log("The second message will force the first to close.");
         }, 1000);
-    });
-
-    // ==============================
-    // Ajax
-    demo("#ajax", function (event) {
-        alertify.confirm("Confirm?", function(ev) {
-            ev.preventDefault();
-            alertify.alert("Successful AJAX after OK");
-        }, function(ev) {
-            ev.preventDefault();
-            alertify.alert("Successful AJAX after Cancel");
-        });
-    });
-
-    // ==============================
-    // Promise Aware
-    demo("#promise", function (event) {
-        if ("function" !== typeof Promise) {
-            alertify.alert("Your browser doesn't support promises");
-            return;
-        }
-
-        alertify.confirm("Confirm?").then(function (resolvedValue) {
-            // The click event is in the
-            // event variable, so you can use
-            // it here.
-            resolvedValue.event.preventDefault();
-            alertify.alert("You clicked the " + resolvedValue.buttonClicked + " button!");
-        });
     });
 
     // ==============================

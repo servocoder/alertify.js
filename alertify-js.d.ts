@@ -5,7 +5,7 @@
 
 interface IAlertify {
     reset(): IAlertify;
-    dialog(message: string): IAlertify;
+    dialog(message: string, buttons?: any): IAlertify;
     alert(message: string, okButton?: any, cancelButton?: any): IAlertify;
     confirm(message: string, okButton?: any, cancelButton?: any): IAlertify;
     prompt(message: string, okButton?: any, cancelButton?: any): IAlertify;
@@ -16,7 +16,6 @@ interface IAlertify {
     dialogWidth(width: Number|string): IAlertify;
     dialogPersistent(bool: Boolean): IAlertify;
     dialogContainerClass(str: string): IAlertify;
-    dialogButtons(buttons: any): IAlertify;
     cancelBtn(label: string): IAlertify;
     okBtn(label: string): IAlertify;
     delay(time: Number): IAlertify;
@@ -28,7 +27,6 @@ interface IAlertify {
     logContainerClass(str: string): IAlertify;
     setLogTemplate(template: string): IAlertify;
     clearLogs(): IAlertify;
-    closeDialog(): IAlertify;
     parent(prt: HTMLElement): IAlertify;
 }
 

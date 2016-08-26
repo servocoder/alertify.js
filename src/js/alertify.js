@@ -3,7 +3,6 @@
     "use strict";
 
     var logsUI;
-    var dialogUI;
     var TRANSITION_FALLBACK_DURATION = 500;
     var hideElement = function(el) {
         if (! el) {
@@ -74,7 +73,6 @@
             dialogWidth: '400px',
             dialogPersistent: true,
             dialogContainerClass: "alertify",
-            dialogButtonsDefinition: [],
             // log options
             logDelay: 5000,
             logMaxItems: 2,
@@ -118,7 +116,6 @@
             dialogWidth: _defaults.dialogWidth,
             dialogPersistent: _defaults.dialogPersistent,
             dialogContainerClass: _defaults.dialogContainerClass,
-            dialogButtonsDefinition: _defaults.dialogButtonsDefinition,
             promptValue: "",
             promptPlaceholder: "",
             logDelay: _defaults.logDelay,
@@ -139,6 +136,10 @@
              */
             build: function(item, buttons) {
                 var dom = {};
+
+                dom.container = document.createElement("div");
+                dom.container.className = this.dialogContainerClass + " hide";
+
                 dom.wrapper = document.createElement("div");
                 dom.wrapper.className = "dialog";
 
@@ -163,6 +164,8 @@
                     dom.label = findElementByData(inputEl, "alertify-input-label");
                     dom.dialog.appendChild(inputEl);
                 }
+
+                dom.container.appendChild(dom.wrapper);
                 dom.wrapper.appendChild(dom.dialog);
                 dom.dialog.appendChild(dom.buttonsWrapper);
                 dom.buttonsHolder.innerHTML = "";
@@ -178,33 +181,18 @@
             },
 
             createButtonsDefinition: function(item) {
-                var definitions = [],
-                    dButtons = this.dialogs.buttons;
+                var definitions = [];
+                for (var i = 0; i < item.buttons.length; i++) {
+                    var btn = this.buildButtonObject(item.buttons[i]);
 
-                if(item.type === "dialog" && this.dialogButtonsDefinition.length > 0) {
-                    for (var i = 0; i < this.dialogButtonsDefinition.length; i++) {
-                        var btn = this.buildButtonObject(this.dialogButtonsDefinition[i]);
+                    if ((item.type === "dialog") ||
+                        (item.type === "alert" && btn.type === "ok") ||
+                        (["confirm", "prompt"].indexOf(item.type) !== -1 && ["ok", "cancel"].indexOf(btn.type) !== -1)
+                    ) {
+                        btn.element = createElementFromHtml(btn.template);
                         definitions.push(btn);
                     }
-                } else {
-                    item.okButton.type = "ok";
-                    item.cancelButton.type = "cancel";
-                    var btnOk = this.buildButtonObject(item.okButton);
-                    var btnCancel = this.buildButtonObject(item.cancelButton);
-
-                    if(item.type === "alert") {
-                        definitions.push(btnOk);
-                    }
-                    if(item.type === "confirm" || item.type === "prompt") {
-                        definitions.push(btnCancel, btnOk);
-                    }
                 }
-
-                for (var k = 0; k < definitions.length; k++) {
-                    var definition = definitions[k];
-                    definition.element = createElementFromHtml(definition.template);
-                }
-
                 return definitions;
             },
 
@@ -259,17 +247,15 @@
              *
              * @param  {String}   message      The message passed from the callee
              * @param  {String}   type         Type of dialog to create
-             * @param  {Object}   okButton     [Optional] Callback function when clicked okay.
-             * @param  {Object}   cancelButton [Optional] Callback function when cancelled.
+             * @param  {Array}    buttons      [Optional] Array of button objects
              *
              * @return {Object}
              */
-            dialog: function(message, type, okButton, cancelButton) {
+            dialog: function(message, type, buttons) {
                 return this.setup({
                     type: type,
                     message: message,
-                    okButton: okButton || {},
-                    cancelButton: cancelButton || {}
+                    buttons: buttons
                 });
             },
 
@@ -378,15 +364,12 @@
             setup: function(item) {
 
                 var buttons = this.createButtonsDefinition(item);
-                dialogUI = this.build(item, buttons);
-
-                dialogUI.container = document.createElement("div");
-                dialogUI.container.className = this.dialogContainerClass + " hide";
-                dialogUI.container.appendChild(dialogUI.wrapper);
+                var dialogDOM = this.build(item, buttons);
 
                 var btnOK;
-                var input = dialogUI.input;
-                var label = dialogUI.label;
+                var dialogUI = {};
+                var input = dialogDOM.input;
+                var label = dialogDOM.label;
 
                 for (var i = 0; i < buttons.length; i++) {
                     if(buttons[i].type === "ok") {
@@ -409,79 +392,51 @@
                     }
                 }
 
-                function setupHandlers(resolve) {
-                    if ("function" !== typeof resolve) {
+                dialogUI.dom = dialogDOM;
+
+                dialogUI.closeDialog = function() {
+                    hideElement(dialogDOM.container);
+                };
+
+                dialogUI.centerDialog = function() {
+                    centerDialog(dialogDOM.wrapper);
+                };
+
+                dialogUI.updateMessage = function(message) {
+                    dialogDOM.message.innerHTML = message;
+                };
+
+                dialogUI.getInputValue = function() {
+                    if(dialogDOM.input) {
+                        return dialogDOM.input.value;
+                    }
+                };
+
+                function setupHandlers(resolve, reject) {
+                    if ("function" !== typeof resolve || "function" !== typeof reject) {
                         // promises are not available so resolve is a no-op
-                        resolve = function () {};
+                        resolve = reject = function () {};
                     }
 
                     for (var i = 0; i < buttons.length; i++) {
                         var btn = buttons[i];
-                        var listener;
 
-                        switch(btn.type) {
-                            case "ok":
-                                listener = (function (button) {return function(event) {
-                                    if (button.click && "function" === typeof button.click) {
-                                        if (input) {
-                                            button.click(event, dialogUI, input.value);
-                                        } else {
-                                            button.click(event, dialogUI);
-                                        }
-                                    }
+                        var listener = (function (button) {return function(event) {
+                            var promise = (button.type === "cancel") ? reject : resolve;
+                            if (button.click && "function" === typeof button.click) {
+                                button.click(event, dialogUI);
+                            }
 
-                                    if (input) {
-                                        resolve({
-                                            buttonClicked: "ok",
-                                            inputValue: input.value,
-                                            event: event
-                                        });
-                                    } else {
-                                        resolve({
-                                            buttonClicked: "ok",
-                                            event: event
-                                        });
-                                    }
+                            promise({
+                                ui: dialogUI,
+                                event: event,
+                                button: button
+                            });
 
-                                    if (button.autoClose === true) {
-                                        hideElement(dialogUI.container);
-                                    }
-                                }}(btn));
-                                break;
-
-                            case "cancel":
-                                listener = (function (button) {return function(event) {
-                                    if (button.click && "function" === typeof button.click) {
-                                        button.click(event, dialogUI);
-                                    }
-
-                                    resolve({
-                                        buttonClicked: "cancel",
-                                        event: event
-                                    });
-
-                                    if (button.autoClose === true) {
-                                        hideElement(dialogUI.container);
-                                    }
-                                }}(btn));
-                                break;
-
-                            default:
-                                listener = (function (button) {return function(event) {
-                                    if (button.click && "function" === typeof button.click) {
-                                        button.click(event, dialogUI);
-                                    }
-
-                                    resolve({
-                                        buttonClicked: button.type,
-                                        event: event
-                                    });
-
-                                    if (button.autoClose === true) {
-                                        hideElement(dialogUI.container);
-                                    }
-                                }}(btn));
-                        }
+                            if (button.autoClose === true) {
+                                dialogUI.closeDialog();
+                            }
+                        }}(btn));
 
                         btn.element.addEventListener("click", listener);
                     }
@@ -504,22 +459,22 @@
                 }
 
                 if(this.dialogPersistent === false) {
-                    dialogUI.container.addEventListener("click", function(e) {
-                        if(e.target === this || e.target === dialogUI.wrapper) {
-                            hideElement(dialogUI.container);
+                    dialogDOM.container.addEventListener("click", function(e) {
+                        if(e.target === this || e.target === dialogDOM.wrapper) {
+                            hideElement(dialogDOM.container);
                         }
                     });
                 }
 
                 window.onresize = function(){
-                    centerDialog(dialogUI.wrapper);
+                    dialogUI.centerDialog();
                 };
 
-                this.parent.appendChild(dialogUI.container);
+                this.parent.appendChild(dialogDOM.container);
                 setTimeout(function() {
-                    removeClass(dialogUI.container, "hide");
-                    //dialogUI.container.classList.remove("hide");
-                    centerDialog(dialogUI.wrapper);
+                    removeClass(dialogDOM.container, "hide");
+                    //dialogDOM.container.classList.remove("hide");
+                    dialogUI.centerDialog();
                     if(input && item.type && item.type === "prompt") {
                         input.select();
                         input.focus();
@@ -531,11 +486,6 @@
                 }, 100);
 
                 return promise;
-            },
-
-            setDialogButtons: function(buttons) {
-                this.dialogButtonsDefinition = (buttons instanceof Array) ? buttons : _defaults.dialogButtonsDefinition;
-                return this;
             },
 
             setDelay: function(time) {
@@ -600,7 +550,6 @@
                 this.dialogWidth = _defaults.dialogWidth;
                 this.dialogPersistent = _defaults.dialogPersistent;
                 this.dialogContainerClass = _defaults.dialogContainerClass;
-                this.dialogButtonsDefinition = _defaults.dialogButtonsDefinition;
                 this.promptValue = "";
                 this.promptPlaceholder = "";
                 this.logDelay = _defaults.logDelay;
@@ -642,17 +591,27 @@
                 _alertify.reset();
                 return this;
             },
-            dialog: function(message) {
-                return _alertify.dialog(message, "dialog", null, null) || this;
+            dialog: function(message, buttons) {
+                return _alertify.dialog(message, "dialog", buttons) || this;
             },
-            alert: function(message, okButton, cancelButton) {
-                return _alertify.dialog(message, "alert", okButton , cancelButton) || this;
+            alert: function(message, okButton) {
+                okButton = okButton || {};
+                okButton.type = "ok";
+                return _alertify.dialog(message, "alert", [okButton]) || this;
             },
             confirm: function(message, okButton, cancelButton) {
-                return _alertify.dialog(message, "confirm", okButton, cancelButton) || this;
+                okButton = okButton || {};
+                cancelButton = cancelButton || {};
+                okButton.type = "ok";
+                cancelButton.type = "cancel";
+                return _alertify.dialog(message, "confirm", [okButton, cancelButton]) || this;
             },
             prompt: function(message, okButton, cancelButton) {
-                return _alertify.dialog(message, "prompt", okButton, cancelButton) || this;
+                okButton = okButton || {};
+                cancelButton = cancelButton || {};
+                okButton.type = "ok";
+                cancelButton.type = "cancel";
+                return _alertify.dialog(message, "prompt", [okButton, cancelButton]) || this;
             },
             log: function(message, click, type) {
                 _alertify.log(message, type, click);
@@ -680,10 +639,6 @@
             },
             dialogContainerClass: function(str) {
                 _alertify.setDialogContainerClass(str || "");
-                return this;
-            },
-            dialogButtons: function(buttons) {
-                _alertify.setDialogButtons(buttons);
                 return this;
             },
             delay: function(time) {
@@ -721,12 +676,6 @@
             clearLogs: function() {
                 if(logsUI) {
                     logsUI.container.innerHTML = "";
-                }
-                return this;
-            },
-            closeDialog: function() {
-                if(dialogUI) {
-                    hideElement(dialogUI.container);
                 }
                 return this;
             },

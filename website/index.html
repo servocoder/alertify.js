@@ -7,6 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>alertify.js</title>
     <link rel="stylesheet" href="css/styles.min.css">
+    <link rel="stylesheet" href="../src/css/alertify.css">
     <script>
     var env = document.domain === "alertifyjs.org" ? "production" : "local";
     if (env === "production") {
@@ -234,11 +235,13 @@ alertify
     .defaultValue("Default value")
     .prompt("This is a prompt dialog",
     {
-        click: function (e, ui, value) {
+        click: function (e, ui) {
             e.preventDefault();
 
-            // The value entered is available in the val variable.
-            alertify.success("You've clicked OK and typed: " + value);
+            // the value entered in the prompt input
+            var inputValue = ui.getInputValue();
+
+            alertify.success("You've clicked OK and typed: " + inputValue);
         }
     },{
         click: function (e, ui) {
@@ -252,7 +255,7 @@ alertify
 
             <div class="mdl-grid">
               <div class="mdl-cell mdl-cell--8-col mdl-cell--5-col-desktop left-col">
-                <h5 class="mdl-typeography--headline">Custom Buttons</h5>
+                <h5 class="mdl-typeography--headline">Custom Button Labels</h5>
                 <p>
                   You're not limited to the "Ok" and "Cancel" button labels.
                   You can easily set your own labels.
@@ -263,18 +266,18 @@ alertify
                 <h5 class="mdl-typeography--headline">Code Example</h5>
 <pre>
 alertify
-    .confirm("Confirm dialog with custom buttons",
+    .confirm("Confirm dialog with custom button labels",
     {
         label: "Accept",
         click: function (e, ui) {
             e.preventDefault();
-            alertify.success("You've clicked OK");
+            alertify.success("You've clicked Accept");
         }
     },{
         label: "Deny",
         click: function (e, ui) {
             e.preventDefault();
-            alertify.error("You've clicked Cancel");
+            alertify.error("You've clicked Deny");
         }
     });
 </pre>
@@ -308,7 +311,7 @@ alertify
             e.preventDefault();
             if (true) {
                 // method to close currently open dialog
-                alertify.closeDialog();
+                ui.closeDialog();
             }
             alertify.error("This is the persistent button, but it was closed programmatically");
         }
@@ -319,33 +322,50 @@ alertify
 
             <div class="mdl-grid">
               <div class="mdl-cell mdl-cell--8-col mdl-cell--5-col-desktop left-col">
-                <h5 class="mdl-typeography--headline">Ajax - Multiple Dialog</h5>
-                <p></p>
+                <h5 class="mdl-typeography--headline">Ajax requests</h5>
+                <p>
+                    "OK" button updates a message inside the open dialog.
+                </p>
+                <p>
+                    "CLOSE" button shows result message in a new dialog.
+                    Multiple dialogs chain.
+                </p>
                 <a class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect" id="ajax">Try It</a>
               </div>
               <div class="mdl-cell mdl-cell--8-col mdl-cell--7-col-desktop right-col">
                 <h5 class="mdl-typeography--headline">Code Example</h5>
 <pre>
-alertify.confirm("Confirm?", function (ev) {
+alertify
+    .confirm("Ajax requests",
+    {
+        autoClose: false,
+        click: function (e, ui) {
+            e.preventDefault();
 
-    // The click event is in the
-    // event variable, so you can use
-    // it here.
-    ev.preventDefault();
+            // AJAX request delay imitation
+            setTimeout(function () {
 
-    alertify.alert("Successful AJAX after OK");
+                // updates message in the current dialog
+                ui.updateMessage("Successful AJAX after OK. Without opening a new dialog.");
 
+                // center message vertically due to dialog height might be changed
+                ui.centerDialog();
 
-}, function(ev) {
+                alertify.log("Dialog message was updated using AJAX request.");
+            }, 200);
+        }
+    },{
+        click: function (e, ui) {
+            e.preventDefault();
 
-    // The click event is in the
-    // event variable, so you can use
-    // it here.
-    ev.preventDefault();
+            // AJAX request delay imitation
+            setTimeout(function () {
 
-    alertify.alert("Successful AJAX after Cancel");
-
-});
+                // notification in the new dialog window
+                alertify.alert("Successful AJAX after Cancel);
+            }, 200);
+        }
+    });
 </pre>
               </div>
             </div>
@@ -353,29 +373,40 @@ alertify.confirm("Confirm?", function (ev) {
             <div class="mdl-grid">
               <div class="mdl-cell mdl-cell--8-col mdl-cell--5-col-desktop left-col">
                 <h5 class="mdl-typeography--headline">Promise Aware</h5>
-                <p>If your browser supports promises, you can use them instead of callbacks</p>
+                <p>
+                    If your browser supports promises, you can use them instead of callbacks.
+                    Each promise function (resolved and rejected) is an object with properties:
+                    "event", "ui" and "button"
+                </p>
                 <a class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect" id="promise">Try It</a>
               </div>
               <div class="mdl-cell mdl-cell--8-col mdl-cell--7-col-desktop right-col">
                 <h5 class="mdl-typeography--headline">Code Example</h5>
 <pre>
-  if ("function" !== typeof Promise) {
-      alertify.alert("Your browser doesn't support promises");
-      return;
-  }
+if ("function" !== typeof Promise) {
+    alertify.alert("Your browser doesn't support promises");
+    return;
+}
 
-  alertify.confirm("Confirm?").then(function (resolvedValue) {
-      // "resolvedValue" is an object with the following keys:
-      // buttonClicked
-      // inputValue (only for prompts)
-      // event
+alertify
+    .confirm("Confirm?").then(
+        function (resolved) {
 
-      // The click event is in
-      // resolvedValue, so you can use
-      // it here.
-      resolvedValue.event.preventDefault();
-      alertify.alert("You clicked the " + resolvedValue.buttonClicked + " button!");
-  });
+            // The click event object is accessible via "event" property.
+            resolved.event.preventDefault();
+
+            // Button object is accessible via "button" property.
+            alertify.alert("You clicked the " + resolved.button.label + " button!");
+        },
+        function(rejected) {
+
+            // The click event object is accessible via "event" property.
+            rejected.event.preventDefault();
+
+            // Button object is accessible via "button" property.
+            alertify.alert("You clicked the " + rejected.button.label + " button!");
+        }
+);
 </pre>
               </div>
             </div>
@@ -720,6 +751,7 @@ alertify
         </footer>
       </main>
     </div>
+    <script src="../src/js/alertify.js"></script>
     <script src="js/all.js"></script>
   </body>
 </html>
