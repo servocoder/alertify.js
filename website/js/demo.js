@@ -125,6 +125,96 @@
     });
 
     // ==============================
+    // Comprehensive dialog demo
+    demo("#custom-dialog", function (event) {
+
+        function getRandomInt(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+        function createInput(value) {
+            return '<input type="radio" name="quiz" id="quiz_' + value + '" value="' + value + '"><label for="quiz_' + value + '">' + value + '</label>';
+        }
+
+        function buildQuiz(ui) {
+            var min = 5;
+            var max = 20;
+            var html = "";
+            var values = [];
+            var numbers = [];
+            var options = [];
+            var solution = 0;
+            var optionsLength = 3;
+            var numbersLength = getRandomInt(2, 4);
+            var scatter = Math.floor((min * numbersLength) / 2);
+
+            for (var i = 0; i < numbersLength; i++) {
+                var number = getRandomInt(min, max);
+                numbers.push(number);
+                solution += number;
+            }
+
+            while (values.length < optionsLength) {
+                var value = getRandomInt(solution - scatter, solution + scatter);
+                if(value !== solution && values.indexOf(value) === -1) {
+                    values.push(value);
+                }
+            }
+            // put correct answer
+            values.splice(getRandomInt(0, optionsLength - 1), 0, solution);
+
+            for (var n = 0; n < values.length; n++) {
+                options.push(createInput(values[n]));
+            }
+
+            html += numbers.join(' + ') + ' = ?';
+            html += '<br><br>';
+            html += options.join('<br>');
+
+            ui.setContent(html);
+            ui.centerDialog();
+            ui.solution = solution;
+        }
+
+        alertify
+            .dialog("Click \"New quiz\" to create new quiz.", [
+            {
+                type: "ok",
+                label: "Test",
+                autoClose: false,
+                click: function (e, ui) {
+
+                    var dialog = ui.dom.dialog;
+                    var checked = dialog.querySelector('input[name="quiz"]:checked');
+
+                    if(checked === null) {
+                        alertify.error("Choose an answer from the list");
+                        buildQuiz(ui);
+                    } else {
+                        if(ui.solution === parseInt(checked.value)) {
+                            alertify.success("Correct answer!");
+                            ui.closeDialog();
+                        } else {
+                            alertify.error("Wrong answer. Bad luck");
+                            buildQuiz(ui);
+                        }
+                    }
+                }
+            },{
+                label: "New quiz",
+                autoClose: false,
+                click: function (e, ui) {
+                    buildQuiz(ui);
+                },
+                template: '<button data-alertify-btn style="font-weight: bold"></button>'
+            },{
+                type: "cancel",
+                label: "Close"
+            }
+        ]);
+    });
+
+    // ==============================
     // Ajax - Multiple Dialog
     demo("#ajax", function (event) {
         alertify
@@ -138,7 +228,7 @@
                     setTimeout(function () {
 
                         // updates message in the current dialog
-                        ui.updateMessage("Successful AJAX after \"OK\".<br>Without opening a new dialog.");
+                        ui.setMessage("Successful AJAX after \"OK\".<br>Without opening a new dialog.");
 
                         // center message vertically due to dialog height might be changed
                         ui.centerDialog();
@@ -163,30 +253,20 @@
     // ==============================
     // Promise Aware
     demo("#promise", function (event) {
+
         if ("function" !== typeof Promise) {
             alertify.alert("Your browser doesn't support promises");
             return;
         }
 
         alertify
-            .confirm("Confirm?").then(
-                function (resolved) {
+            .confirm("Promise confirm").then(function (resolved) {
+                // The click event object is accessible via "event" property.
+                resolved.event.preventDefault();
 
-                    // The click event object is accessible via "event" property.
-                    resolved.event.preventDefault();
-
-                    // Button object is accessible via "button" property.
-                    alertify.alert("You clicked the " + resolved.button.label + " button!");
-                },
-                function(rejected) {
-
-                    // The click event object is accessible via "event" property.
-                    rejected.event.preventDefault();
-
-                    // Button object is accessible via "button" property.
-                    alertify.alert("You clicked the " + rejected.button.label + " button!");
-                }
-        );
+                // UI object is accessible via "ui" property.
+                alertify.alert("You clicked the " + resolved.ui.getButtonObject().label + " button!");
+            });
     });
 
     demo("#click-to-close", function (event) {

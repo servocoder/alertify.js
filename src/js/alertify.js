@@ -146,13 +146,16 @@
                 dom.dialog = document.createElement("div");
                 dom.dialog.style.width = this.dialogWidth;
 
+                dom.content = document.createElement("div");
+                dom.content.className = "content";
+
                 if(item.type === "dialog") {
-                    dom.dialog.innerHTML = item.message;
+                    dom.content.innerHTML = item.message;
                 } else {
                     dom.messageWrapper = createElementFromHtml(this.dialogs.message);
                     dom.message = findElementByData(dom.messageWrapper, "alertify-msg");
                     dom.message.innerHTML = item.message;
-                    dom.dialog.appendChild(dom.messageWrapper);
+                    dom.content.appendChild(dom.messageWrapper);
                 }
 
                 dom.buttonsWrapper = createElementFromHtml(this.dialogs.buttons.holder);
@@ -162,11 +165,12 @@
                     var inputEl = createElementFromHtml(this.dialogs.input);
                     dom.input = findElementByData(inputEl, "alertify-input");
                     dom.label = findElementByData(inputEl, "alertify-input-label");
-                    dom.dialog.appendChild(inputEl);
+                    dom.content.appendChild(inputEl);
                 }
 
                 dom.container.appendChild(dom.wrapper);
                 dom.wrapper.appendChild(dom.dialog);
+                dom.dialog.appendChild(dom.content);
                 dom.dialog.appendChild(dom.buttonsWrapper);
                 dom.buttonsHolder.innerHTML = "";
 
@@ -200,6 +204,11 @@
                 var btn = {};
                 var type = obj.type || "default";
                 var db = this.dialogs.buttons;
+
+                var allowedTypes = ["ok", "cancel", "default"];
+                if(typeof obj.type !== "undefined" && allowedTypes.indexOf(obj.type) === -1) {
+                    throw new Error('Wrong button type: "' + obj.type + '". Valid values: "' + allowedTypes.join('", "') + '"');
+                }
 
                 btn.type = type;
                 btn.label = (typeof obj.label !== "undefined") ? obj.label : db[type].label;
@@ -368,6 +377,7 @@
 
                 var btnOK;
                 var dialogUI = {};
+                var clickedButton;
                 var input = dialogDOM.input;
                 var label = dialogDOM.label;
 
@@ -402,8 +412,12 @@
                     centerDialog(dialogDOM.wrapper);
                 };
 
-                dialogUI.updateMessage = function(message) {
+                dialogUI.setMessage = function(message) {
                     dialogDOM.message.innerHTML = message;
+                };
+
+                dialogUI.setContent = function(content) {
+                    dialogDOM.content.innerHTML = content;
                 };
 
                 dialogUI.getInputValue = function() {
@@ -412,25 +426,35 @@
                     }
                 };
 
-                function setupHandlers(resolve, reject) {
-                    if ("function" !== typeof resolve || "function" !== typeof reject) {
+                dialogUI.getButtonObject = function() {
+                    if(clickedButton) {
+                        return {
+                            type: clickedButton.type,
+                            label: clickedButton.label,
+                            autoClose: clickedButton.autoClose,
+                            element: clickedButton.element
+                        };
+                    }
+                };
+
+                function setupHandlers(resolve) {
+                    if ("function" !== typeof resolve) {
                         // promises are not available so resolve is a no-op
-                        resolve = reject = function () {};
+                        resolve = function () {};
                     }
 
                     for (var i = 0; i < buttons.length; i++) {
                         var btn = buttons[i];
 
                         var listener = (function (button) {return function(event) {
-                            var promise = (button.type === "cancel") ? reject : resolve;
+                            clickedButton = button;
                             if (button.click && "function" === typeof button.click) {
                                 button.click(event, dialogUI);
                             }
 
-                            promise({
+                            resolve({
                                 ui: dialogUI,
-                                event: event,
-                                button: button
+                                event: event
                             });
 
                             if (button.autoClose === true) {
