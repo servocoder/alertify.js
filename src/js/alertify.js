@@ -697,6 +697,13 @@
                 _alertify.logTemplateMethod = templateMethod;
                 return this;
             },
+            clearDialogs: function() {
+                var dialog;
+                while(dialog = _alertify.parent.querySelector(':scope > .' + _defaults.dialogContainerClass)) {
+                    _alertify.parent.removeChild(dialog);
+                }
+                return this;
+            },
             clearLogs: function() {
                 if(logsUI) {
                     logsUI.container.innerHTML = "";
