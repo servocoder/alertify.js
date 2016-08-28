@@ -33,7 +33,7 @@ gulp.task("website:css", function() {
         ])
         .pipe(concat("styles.min.css"))
         .pipe(autoprefixer())
-        .pipe(minifyCSS())
+        .pipe(minifyCSS({zindex: false}))
         .pipe(gulp.dest("website/css"))
         .pipe(connect.reload());
 });
@@ -55,7 +55,7 @@ gulp.task("website:js", function() {
 gulp.task("css:min", function () {
     return gulp
       .src(p("src/css/**/*.css"))
-      .pipe(minifyCSS())
+      .pipe(minifyCSS({zindex: false}))
       .pipe(size({ gzip: true, showFiles: true }))
       .pipe(gulp.dest(p("dist/css")))
       .pipe(connect.reload());
