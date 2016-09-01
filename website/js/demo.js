@@ -335,6 +335,10 @@
         });
     });
 
+    demo("#warning", function (event) {
+        alertify.warning("Warning log message");
+    });
+
     demo("#error", function (event) {
         alertify.error("Error log message");
     });

@@ -645,6 +645,10 @@
                 _alertify.log(message, "success", click);
                 return this;
             },
+            warning: function(message, click) {
+                _alertify.log(message, "warning", click);
+                return this;
+            },
             error: function(message, click) {
                 _alertify.log(message, "error", click);
                 return this;

@@ -11,6 +11,7 @@ interface IAlertify {
     prompt(message: string, okButton?: any, cancelButton?: any): IAlertify;
     log(message: string, click?: Function, type?: string): IAlertify;
     success(message: string, click?: Function): IAlertify;
+    warning(message: string, click?: Function): IAlertify;
     error(message: string, click?: Function): IAlertify;
     theme(themeName: string): IAlertify;
     dialogWidth(width: Number|string): IAlertify;
