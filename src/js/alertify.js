@@ -3,6 +3,7 @@
     "use strict";
 
     var logsUI;
+    var jq = !!window.jQuery;
     var TRANSITION_FALLBACK_DURATION = 500;
     var hideElement = function(el) {
         if (! el) {
@@ -15,11 +16,10 @@
             }
         };
 
-        removeClass(el, "show");
-        addClass(el, "hide");
-        //el.classList.remove("show");
-        //el.classList.add("hide");
-        el.addEventListener("transitionend", removeThis);
+        jq ? $(el).removeClass("show") : el.classList.remove("show");
+        jq ? $(el).addClass("hide") : el.classList.add("hide");
+        jq ? $(el).on("transitionend", removeThis) : el.addEventListener("transitionend", removeThis);
+        //el.addEventListener("transitionend", removeThis);
 
         // Fallback for no transitions.
         setTimeout(removeThis, TRANSITION_FALLBACK_DURATION);
@@ -49,22 +49,6 @@
         }
     }
 
-    function removeClass(node, className) {
-        var classList = node.getAttribute("class").split(' ');
-        var classIndex = classList.indexOf(className);
-        if(classIndex !== -1) {
-            classList.splice(classIndex, 1);
-        }
-        node.className = classList.join(' ');
-    }
-
-    function addClass(node, className) {
-        var classList = node.getAttribute("class").split(' ');
-        classList.push(className);
-        node.className = classList.join(' ');
-    }
-
-
     function Alertify() {
 
         var _defaults = {
@@ -73,6 +57,23 @@
             dialogWidth: '400px',
             dialogPersistent: true,
             dialogContainerClass: "alertify",
+            dialogButtons: {
+                ok: {
+                    label: "Ok",
+                    autoClose: true,
+                    template: '<button data-alertify-btn="ok" tabindex="1"></button>'
+                },
+                cancel: {
+                    label: "Cancel",
+                    autoClose: true,
+                    template: '<button data-alertify-btn="cancel" tabindex="2"></button>'
+                },
+                custom: {
+                    label: "Custom",
+                    autoClose: false,
+                    template: '<button data-alertify-btn tabindex="3"></button>'
+                }
+            },
             // log options
             logDelay: 5000,
             logMaxItems: 2,
@@ -80,28 +81,16 @@
             logCloseOnClick: false,
             logContainerClass: "alertify-logs",
             logTemplateMethod: null,
-
-            dialogs: {
-                buttons: {
-                    holder: '<nav data-alertify-btn-holder></nav>',
-                    ok: {
-                        label: "Ok",
-                        autoClose: true,
-                        template: '<button data-alertify-btn="ok" tabindex="1"></button>'
-                    },
-                    cancel: {
-                        label: "Cancel",
-                        autoClose: true,
-                        template: '<button data-alertify-btn="cancel" tabindex="2"></button>'
-                    },
-                    default: {
-                        label: "Default",
-                        autoClose: false,
-                        template: '<button data-alertify-btn tabindex="3"></button>'
-                    }
+            // html templates
+            templates: {
+                dialog: {
+                    buttonsHolder: '<nav data-alertify-btn-holder></nav>',
+                    message: '<div data-alertify-msg></div>',
+                    input: '<input data-alertify-input type="text">'
                 },
-                message: '<div data-alertify-msg></div>',
-                input: '<input data-alertify-input type="text">'
+                log: {
+                    message: '<div data-alertify-log-msg></div>'
+                }
             }
         };
 
@@ -116,6 +105,7 @@
             dialogWidth: _defaults.dialogWidth,
             dialogPersistent: _defaults.dialogPersistent,
             dialogContainerClass: _defaults.dialogContainerClass,
+            dialogButtons: _defaults.dialogButtons,
             promptValue: "",
             promptPlaceholder: "",
             logDelay: _defaults.logDelay,
@@ -124,7 +114,7 @@
             logCloseOnClick: _defaults.logCloseOnClick,
             logContainerClass: _defaults.logContainerClass,
             logTemplateMethod: _defaults.logTemplateMethod,
-            dialogs: _defaults.dialogs,
+            templates: _defaults.templates,
 
             /**
              * Build the proper message box
@@ -152,17 +142,17 @@
                 if(item.type === "dialog") {
                     dom.content.innerHTML = item.message;
                 } else {
-                    dom.messageWrapper = createElementFromHtml(this.dialogs.message);
+                    dom.messageWrapper = createElementFromHtml(this.templates.dialog.message);
                     dom.message = findElementByData(dom.messageWrapper, "alertify-msg");
                     dom.message.innerHTML = item.message;
                     dom.content.appendChild(dom.messageWrapper);
                 }
 
-                dom.buttonsWrapper = createElementFromHtml(this.dialogs.buttons.holder);
+                dom.buttonsWrapper = createElementFromHtml(this.templates.dialog.buttonsHolder);
                 dom.buttonsHolder = findElementByData(dom.buttonsWrapper, 'alertify-btn-holder');
 
                 if (item.type === "prompt") {
-                    var inputEl = createElementFromHtml(this.dialogs.input);
+                    var inputEl = createElementFromHtml(this.templates.dialog.input);
                     dom.input = findElementByData(inputEl, "alertify-input");
                     dom.label = findElementByData(inputEl, "alertify-input-label");
                     dom.content.appendChild(inputEl);
@@ -202,10 +192,10 @@
 
             buildButtonObject: function(obj) {
                 var btn = {};
-                var type = obj.type || "default";
-                var db = this.dialogs.buttons;
+                var type = obj.type || "custom";
+                var db = this.dialogButtons;
 
-                var allowedTypes = ["ok", "cancel", "default"];
+                var allowedTypes = ["ok", "cancel", "custom"];
                 if(typeof obj.type !== "undefined" && allowedTypes.indexOf(obj.type) === -1) {
                     throw new Error('Wrong button type: "' + obj.type + '". Valid values: "' + allowedTypes.join('", "') + '"');
                 }
@@ -338,31 +328,42 @@
             notify: function(message, type, click) {
 
                 this.setupLogContainer();
-                var log = document.createElement("div");
+                var ui = {};
+                var domLog = {};
+                ui.dom = domLog;
 
-                log.className = (type || "default");
+                domLog.wrapper = createElementFromHtml(this.templates.log.message);
+                domLog.message = findElementByData(domLog.wrapper, 'alertify-log-msg');
+
+                jq ? $(domLog.message).addClass(type) : domLog.message.classList.add(type);
                 if (_alertify.logTemplateMethod) {
-                    log.innerHTML = _alertify.logTemplateMethod(message);
+                    domLog.message.innerHTML = _alertify.logTemplateMethod(message);
                 } else {
-                    log.innerHTML = message;
+                    domLog.message.innerHTML = message;
                 }
+
+                ui.closeLog = function() {
+                    hideElement(domLog.wrapper);
+                };
 
                 // Add the click handler, if specified.
                 if ("function" === typeof click) {
-                    log.addEventListener("click", click);
+                    var handler = function (event) {
+                        click(event, ui);
+                    };
+                    jq ? $(domLog.wrapper).on("click", handler) : domLog.wrapper.addEventListener("click", handler);
                 }
 
                 if(!logsUI.elements) {
                     logsUI.elements = [];
                 }
-                logsUI.elements.push(log);
-                logsUI.container.appendChild(log);
+                logsUI.elements.push(domLog.wrapper);
+                logsUI.container.appendChild(domLog.wrapper);
                 setTimeout(function() {
-                    log.className += " show";
+                    domLog.wrapper.className += " show";
                 }, 10);
 
-                this.close(log, this.logDelay);
-
+                this.close(domLog.wrapper, this.logDelay);
             },
 
             /**
@@ -373,13 +374,13 @@
             setup: function(item) {
 
                 var buttons = this.createButtonsDefinition(item);
-                var dialogDOM = this.build(item, buttons);
+                var domDialog = this.build(item, buttons);
 
                 var btnOK;
                 var dialogUI = {};
                 var clickedButton;
-                var input = dialogDOM.input;
-                var label = dialogDOM.label;
+                var input = domDialog.input;
+                var label = domDialog.label;
 
                 for (var i = 0; i < buttons.length; i++) {
                     if(buttons[i].type === "ok") {
@@ -402,27 +403,27 @@
                     }
                 }
 
-                dialogUI.dom = dialogDOM;
+                dialogUI.dom = domDialog;
 
                 dialogUI.closeDialog = function() {
-                    hideElement(dialogDOM.container);
+                    hideElement(domDialog.container);
                 };
 
                 dialogUI.centerDialog = function() {
-                    centerDialog(dialogDOM.wrapper);
+                    centerDialog(domDialog.wrapper);
                 };
 
                 dialogUI.setMessage = function(message) {
-                    dialogDOM.message.innerHTML = message;
+                    domDialog.message.innerHTML = message;
                 };
 
                 dialogUI.setContent = function(content) {
-                    dialogDOM.content.innerHTML = content;
+                    domDialog.content.innerHTML = content;
                 };
 
                 dialogUI.getInputValue = function() {
-                    if(dialogDOM.input) {
-                        return dialogDOM.input.value;
+                    if(domDialog.input) {
+                        return domDialog.input.value;
                     }
                 };
 
@@ -483,9 +484,9 @@
                 }
 
                 if(this.dialogPersistent === false) {
-                    dialogDOM.container.addEventListener("click", function(e) {
-                        if(e.target === this || e.target === dialogDOM.wrapper) {
-                            hideElement(dialogDOM.container);
+                    domDialog.container.addEventListener("click", function(e) {
+                        if(e.target === this || e.target === domDialog.wrapper) {
+                            hideElement(domDialog.container);
                         }
                     });
                 }
@@ -494,10 +495,9 @@
                     dialogUI.centerDialog();
                 };
 
-                this.parent.appendChild(dialogDOM.container);
+                this.parent.appendChild(domDialog.container);
                 setTimeout(function() {
-                    removeClass(dialogDOM.container, "hide");
-                    //dialogDOM.container.classList.remove("hide");
+                    jq ? $(domDialog.container).removeClass("hide") : domDialog.container.classList.remove("hide");
                     dialogUI.centerDialog();
                     if(input && item.type && item.type === "prompt") {
                         input.select();
@@ -537,34 +537,41 @@
                 this.dialogContainerClass = _defaults.dialogContainerClass + " " + string;
             },
 
-            theme: function(themeStr) {
-                switch(themeStr.toLowerCase()) {
-                    case "bootstrap":
-                        this.dialogs.buttons.ok.template = '<button data-alertify-btn="ok" class="ok btn btn-primary" tabindex="1"></button>';
-                        this.dialogs.buttons.cancel.template = '<button data-alertify-btn="cancel" class="cancel btn btn-default" tabindex="2"></button>';
-                        this.dialogs.input = "<input data-alertify-input class='form-control' type='text'>";
-                        break;
-                    case "purecss":
-                        this.dialogs.buttons.ok.template = '<button data-alertify-btn="ok" class="ok pure-button" tabindex="1"></button>';
-                        this.dialogs.buttons.cancel.template = '<button data-alertify-btn="cancel" class="cancel pure-button" tabindex="2"></button>';
-                        break;
-                    case "mdl":
-                    case "material-design-light":
-                        this.dialogs.buttons.ok.template = '<button data-alertify-btn="ok" class="ok mdl-button mdl-js-button mdl-js-ripple-effect"  tabindex="1"></button>';
-                        this.dialogs.buttons.cancel.template = '<button data-alertify-btn="cancel" class="cancel mdl-button mdl-js-button mdl-js-ripple-effect" tabindex="2"></button>';
-                        this.dialogs.input = '<div class="mdl-textfield mdl-js-textfield"><input data-alertify-input class="mdl-textfield__input"><label data-alertify-input-label class="md-textfield__label"></label></div>';
-                        break;
-                    case "angular-material":
-                        this.dialogs.buttons.ok.template = '"<button data-alertify-btn="ok" class="ok md-primary md-button" tabindex="1"></button>"';
-                        this.dialogs.buttons.cancel.template = '<button data-alertify-btn="cancel" class="cancel md-button" tabindex="2"></button>';
-                        this.dialogs.input = '<div layout="column"><md-input-container md-no-float><input data-alertify-input type="text"></md-input-container></div>';
-                        break;
-                    case "default":
-                    default:
-                        this.dialogs.buttons.ok.template = _defaults.dialogs.buttons.ok.template;
-                        this.dialogs.buttons.cancel.template = _defaults.dialogs.buttons.cancel.template;
-                        this.dialogs.input = _defaults.dialogs.input;
-                        break;
+            setTheme: function(theme) {
+                if(!theme) return;
+                if(typeof theme === "string") {
+                    switch (theme.toLowerCase()) {
+                        case "bootstrap":
+                            this.dialogButtons.ok.template = '<button data-alertify-btn="ok" class="ok btn btn-primary" tabindex="1"></button>';
+                            this.dialogButtons.cancel.template = '<button data-alertify-btn="cancel" class="cancel btn btn-default" tabindex="2"></button>';
+                            this.templates.dialog.input = "<input data-alertify-input class='form-control' type='text'>";
+                            break;
+                        case "purecss":
+                            this.dialogButtons.ok.template = '<button data-alertify-btn="ok" class="ok pure-button" tabindex="1"></button>';
+                            this.dialogButtons.cancel.template = '<button data-alertify-btn="cancel" class="cancel pure-button" tabindex="2"></button>';
+                            break;
+                        case "mdl":
+                        case "material-design-light":
+                            this.dialogButtons.ok.template = '<button data-alertify-btn="ok" class="ok mdl-button mdl-js-button mdl-js-ripple-effect"  tabindex="1"></button>';
+                            this.dialogButtons.cancel.template = '<button data-alertify-btn="cancel" class="cancel mdl-button mdl-js-button mdl-js-ripple-effect" tabindex="2"></button>';
+                            this.templates.dialog.input = '<div class="mdl-textfield mdl-js-textfield"><input data-alertify-input class="mdl-textfield__input"><label data-alertify-input-label class="md-textfield__label"></label></div>';
+                            break;
+                        case "angular-material":
+                            this.dialogButtons.ok.template = '"<button data-alertify-btn="ok" class="ok md-primary md-button" tabindex="1"></button>"';
+                            this.dialogButtons.cancel.template = '<button data-alertify-btn="cancel" class="cancel md-button" tabindex="2"></button>';
+                            this.templates.dialog.input = '<div layout="column"><md-input-container md-no-float><input data-alertify-input type="text"></md-input-container></div>';
+                            break;
+                        case "default":
+                        default:
+                            this.dialogButtons.ok.template = _defaults.dialogButtons.ok.template;
+                            this.dialogButtons.cancel.template = _defaults.dialogButtons.cancel.template;
+                            this.templates.dialog.input = _defaults.templates.dialog.input;
+                            break;
+                    }
+                }
+                if(typeof theme === "object") {
+                    this.templates.dialog = theme.dialog || this.templates.dialog;
+                    this.templates.log = theme.log || this.templates.log;
                 }
             },
 
@@ -590,7 +597,6 @@
                     var css = document.createElement("style");
                     css.type = "text/css";
                     css.id = "alertifyCSS";
-                    css.innerHTML = "/* style.css */";
                     head.insertBefore(css, head.firstChild);
                 }
             },
@@ -637,8 +643,8 @@
                 cancelButton.type = "cancel";
                 return _alertify.dialog(message, "prompt", [okButton, cancelButton]) || this;
             },
-            log: function(message, click, type) {
-                _alertify.log(message, type, click);
+            log: function(message, click) {
+                _alertify.log(message, "default", click);
                 return this;
             },
             success: function(message, click) {
@@ -651,10 +657,6 @@
             },
             error: function(message, click) {
                 _alertify.log(message, "error", click);
-                return this;
-            },
-            theme: function(themeStr) {
-                _alertify.theme(themeStr);
                 return this;
             },
             dialogWidth: function(width) {
@@ -697,8 +699,12 @@
                 _alertify.setLogContainerClass(str || "");
                 return this;
             },
-            setLogTemplate: function(templateMethod) {
+            logMessageTemplate: function(templateMethod) {
                 _alertify.logTemplateMethod = templateMethod;
+                return this;
+            },
+            theme: function(theme) {
+                _alertify.setTheme(theme);
                 return this;
             },
             clearDialogs: function() {

@@ -1,16 +1,18 @@
-.alertify-logs > * {
+.alertify-logs [data-alertify-log-msg] {
   padding: 12px 24px;
   color: #fff;
   box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.2);
   border-radius: 1px;
   transition: .2s all;
   display: block !important; }
-  .alertify-logs > *, .alertify-logs > *.default {
+  .alertify-logs [data-alertify-log-msg], .alertify-logs [data-alertify-log-msg].default {
     background: rgba(0, 0, 0, 0.8); }
-  .alertify-logs > *.error {
-    background: rgba(244, 67, 54, 0.8); }
-  .alertify-logs > *.success {
+  .alertify-logs [data-alertify-log-msg].success {
     background: rgba(76, 175, 80, 0.9); }
+  .alertify-logs [data-alertify-log-msg].warning {
+    background: rgba(255, 125, 25, 0.9); }
+  .alertify-logs [data-alertify-log-msg].error {
+    background: rgba(244, 67, 54, 0.9); }
 
 .alertify {
   position: fixed;

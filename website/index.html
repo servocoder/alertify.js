@@ -7,6 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>alertify.js</title>
     <link rel="stylesheet" href="css/styles.min.css">
+    <link rel="stylesheet" href="../src/css/alertify.css">
     <script>
     var env = document.domain === "alertifyjs.org" ? "production" : "local";
     if (env === "production") {
@@ -77,6 +78,7 @@
 
             <h2 class="mdl-typeography--display-3" id="getting-started">Getting Started</h2>
 
+
             <div class="mdl-grid">
               <div class="mdl-cell mdl-cell--8-col mdl-cell--5-col-desktop left-col">
                 <h4 class="mdl-typeograph--headline">Notes</h4>
@@ -125,6 +127,7 @@
 &lt;script src="/path/to/alertify.js"&gt;&lt;/script&gt;</pre>
               </div>
             </div>
+
             <div class="mdl-grid">
               <div class="mdl-cell mdl-cell--8-col mdl-cell--5-col-desktop left-col">
                 <h4 class="mdl-typeograph--headline">AngularJS</h4>
@@ -151,6 +154,7 @@ angular
               </div>
             </div>
           </div>
+
           <div class="styles__ribbon styles__ribbon--teal">
               <div class="container">
                   <h2 class="mdl-typeography--display-3" id="performance">Performance</h2>
@@ -333,7 +337,7 @@ alertify
                 </p>
                 <ul>
                     <li>
-                        <b>type</b> - valid values: "ok", "cancel", "default". Button with type "ok"
+                        <b>type</b> - valid values: "ok", "cancel", "custom". Button with type "ok"
                         or "cancel" behaves as a regular appropriate button in "confirm" dialog.
                         You are able to change the button behavior with any of the option below.
                     </li>
@@ -868,7 +872,7 @@ setTimeout(function() {
                 <h5 class="mdl-typeography--headline">Code Example</h5>
 <pre>
 alertify
-  .setLogTemplate(function (input) { return 'log message: ' + input; })
+  .logMessageTemplate(function (input) { return 'log message: ' + input; })
   .log("This is the message");
 </pre>
               </div>
@@ -916,6 +920,8 @@ alertify
         </footer>
       </main>
     </div>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+    <script src="../src/js/alertify.js"></script>
     <script src="js/all.js"></script>
   </body>
 </html>

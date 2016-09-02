@@ -9,7 +9,7 @@ interface IAlertify {
     alert(message: string, okButton?: any, cancelButton?: any): IAlertify;
     confirm(message: string, okButton?: any, cancelButton?: any): IAlertify;
     prompt(message: string, okButton?: any, cancelButton?: any): IAlertify;
-    log(message: string, click?: Function, type?: string): IAlertify;
+    log(message: string, click?: Function): IAlertify;
     success(message: string, click?: Function): IAlertify;
     warning(message: string, click?: Function): IAlertify;
     error(message: string, click?: Function): IAlertify;
@@ -26,7 +26,8 @@ interface IAlertify {
     closeLogOnClick(bool: Boolean): IAlertify;
     logPosition(position: string): IAlertify;
     logContainerClass(str: string): IAlertify;
-    setLogTemplate(template: string): IAlertify;
+    logMessageTemplate(template: Function): IAlertify;
+    templateTheme()
     clearDialogs(): IAlertify;
     clearLogs(): IAlertify;
     parent(prt: HTMLElement): IAlertify;

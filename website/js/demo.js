@@ -293,7 +293,7 @@
 
     demo("#log-template", function (event) {
         alertify
-            .setLogTemplate(function (input) { return 'log message: ' + input; })
+            .logMessageTemplate(function (input) { return 'log message: ' + input; })
             .log("This is the message");
     });
 
