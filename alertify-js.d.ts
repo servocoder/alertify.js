@@ -13,21 +13,18 @@ interface IAlertify {
     success(message: string, click?: Function): IAlertify;
     warning(message: string, click?: Function): IAlertify;
     error(message: string, click?: Function): IAlertify;
-    theme(themeName: string): IAlertify;
+    theme(themeName: any): IAlertify;
     dialogWidth(width: Number|string): IAlertify;
     dialogPersistent(bool: Boolean): IAlertify;
     dialogContainerClass(str: string): IAlertify;
+    inputDefaultValue(str: string): IAlertify;
     cancelBtn(label: string): IAlertify;
     okBtn(label: string): IAlertify;
-    delay(time: Number): IAlertify;
-    placeholder(str: string): IAlertify;
-    defaultValue(str: string): IAlertify;
-    maxLogItems(max: Number): IAlertify;
-    closeLogOnClick(bool: Boolean): IAlertify;
+    logDelay(time: Number): IAlertify;
+    logMaxItems(max: Number): IAlertify;
     logPosition(position: string): IAlertify;
     logContainerClass(str: string): IAlertify;
     logMessageTemplate(template: Function): IAlertify;
-    templateTheme()
     clearDialogs(): IAlertify;
     clearLogs(): IAlertify;
     parent(prt: HTMLElement): IAlertify;

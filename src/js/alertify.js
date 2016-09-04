@@ -3,7 +3,6 @@
     "use strict";
 
     var logsUI;
-    var jq = !!window.jQuery;
     var TRANSITION_FALLBACK_DURATION = 500;
     var hideElement = function(el) {
         if (! el) {
@@ -16,19 +15,21 @@
             }
         };
 
-        jq ? $(el).removeClass("show") : el.classList.remove("show");
-        jq ? $(el).addClass("hide") : el.classList.add("hide");
-        jq ? $(el).on("transitionend", removeThis) : el.addEventListener("transitionend", removeThis);
-        //el.addEventListener("transitionend", removeThis);
+        removeClass(el, "show");
+        addClass(el, "hide");
+        el.addEventListener("transitionend", removeThis);
 
         // Fallback for no transitions.
         setTimeout(removeThis, TRANSITION_FALLBACK_DURATION);
     };
 
     function centerDialog(node) {
-        var nodeRect = node.getBoundingClientRect();
-        var bodyRect = document.body.getBoundingClientRect();
-        node.style.top = (bodyRect.height / 2 - nodeRect.height / 2) + "px";
+        var nodeHeight = node.offsetHeight;
+        var windowHeight = window.innerHeight ? window.innerHeight
+            : document.documentElement.clientHeight ? document.documentElement.clientHeight
+            : screen.height;
+        var top = (windowHeight / 2) - (nodeHeight / 2);
+        node.style.top = top + "px";
     }
 
     function createElementFromHtml(html) {
@@ -38,15 +39,35 @@
     }
 
     function findElementByData(node, name) {
-        var nodes = node.length ? node : [node];
-        for(var i =0; i < nodes.length; i++){
-            if (nodes[i].getAttribute("data-" + name) !== null) {
-                return nodes[i];
-            }
-            if (nodes[i].childNodes.length) {
-                return findElementByData(nodes[i].childNodes, name);
-            }
+        var attributeName = 'data-' + name;
+        var dummy = document.createElement("div");
+        dummy.appendChild(node);
+        var element = dummy.querySelector('[' + attributeName + ']');
+        if(!element) {
+            throw new Error('Unable to find: "' + attributeName + '" attribute.');
         }
+        return element;
+    }
+
+    function removeClass(node, className) {
+        var attribute = node.getAttribute("class");
+        var classList = attribute ? attribute.split(' ') : [];
+        var classIndex = classList.indexOf(className);
+        if(classIndex !== -1) {
+            classList.splice(classIndex, 1);
+        }
+        node.className = classList.join(' ');
+    }
+
+    function addClass(node, className) {
+        var attribute = node.getAttribute("class");
+        var classList = attribute ? attribute.split(' ') : [];
+        classList.push(className);
+        node.className = classList.join(' ');
+    }
+
+    function clone(object) {
+        return JSON.parse(JSON.stringify(object));
     }
 
     function Alertify() {
@@ -78,19 +99,14 @@
             logDelay: 5000,
             logMaxItems: 2,
             logPosition: "bottom left",
-            logCloseOnClick: false,
             logContainerClass: "alertify-logs",
             logTemplateMethod: null,
             // html templates
             templates: {
-                dialog: {
-                    buttonsHolder: '<nav data-alertify-btn-holder></nav>',
-                    message: '<div data-alertify-msg></div>',
-                    input: '<input data-alertify-input type="text">'
-                },
-                log: {
-                    message: '<div data-alertify-log-msg></div>'
-                }
+                dialogButtonsHolder: '<nav data-alertify-btn-holder></nav>',
+                dialogMessage: '<div data-alertify-msg></div>',
+                dialogInput: '<input data-alertify-input type="text">',
+                logMessage: '<div data-alertify-log-msg></div>'
             }
         };
 
@@ -102,19 +118,19 @@
 
             version: "1.0.11",
             parent: _defaults.parent,
+            // dialog options
             dialogWidth: _defaults.dialogWidth,
             dialogPersistent: _defaults.dialogPersistent,
             dialogContainerClass: _defaults.dialogContainerClass,
-            dialogButtons: _defaults.dialogButtons,
+            dialogButtons: clone(_defaults.dialogButtons),
             promptValue: "",
-            promptPlaceholder: "",
+            // log options
             logDelay: _defaults.logDelay,
             logMaxItems: _defaults.logMaxItems,
             logPosition: _defaults.logPosition,
-            logCloseOnClick: _defaults.logCloseOnClick,
             logContainerClass: _defaults.logContainerClass,
             logTemplateMethod: _defaults.logTemplateMethod,
-            templates: _defaults.templates,
+            templates: clone(_defaults.templates),
 
             /**
              * Build the proper message box
@@ -142,19 +158,18 @@
                 if(item.type === "dialog") {
                     dom.content.innerHTML = item.message;
                 } else {
-                    dom.messageWrapper = createElementFromHtml(this.templates.dialog.message);
+                    dom.messageWrapper = createElementFromHtml(this.templates.dialogMessage);
                     dom.message = findElementByData(dom.messageWrapper, "alertify-msg");
                     dom.message.innerHTML = item.message;
                     dom.content.appendChild(dom.messageWrapper);
                 }
 
-                dom.buttonsWrapper = createElementFromHtml(this.templates.dialog.buttonsHolder);
+                dom.buttonsWrapper = createElementFromHtml(this.templates.dialogButtonsHolder);
                 dom.buttonsHolder = findElementByData(dom.buttonsWrapper, 'alertify-btn-holder');
 
                 if (item.type === "prompt") {
-                    var inputEl = createElementFromHtml(this.templates.dialog.input);
+                    var inputEl = createElementFromHtml(this.templates.dialogInput);
                     dom.input = findElementByData(inputEl, "alertify-input");
-                    dom.label = findElementByData(inputEl, "alertify-input-label");
                     dom.content.appendChild(inputEl);
                 }
 
@@ -209,10 +224,6 @@
                 return btn;
             },
 
-            setCloseLogOnClick: function(bool) {
-                this.logCloseOnClick = bool;
-            },
-
             /**
              * Close the log messages
              *
@@ -222,12 +233,6 @@
              * @return {undefined}
              */
             close: function(elem, wait) {
-
-                if (this.logCloseOnClick) {
-                    elem.addEventListener("click", function() {
-                        hideElement(elem);
-                    });
-                }
 
                 wait = wait && !isNaN(+wait) ? +wait : this.logDelay;
 
@@ -332,10 +337,10 @@
                 var domLog = {};
                 ui.dom = domLog;
 
-                domLog.wrapper = createElementFromHtml(this.templates.log.message);
+                domLog.wrapper = createElementFromHtml(this.templates.logMessage);
                 domLog.message = findElementByData(domLog.wrapper, 'alertify-log-msg');
 
-                jq ? $(domLog.message).addClass(type) : domLog.message.classList.add(type);
+                addClass(domLog.message, type);
                 if (_alertify.logTemplateMethod) {
                     domLog.message.innerHTML = _alertify.logTemplateMethod(message);
                 } else {
@@ -348,10 +353,9 @@
 
                 // Add the click handler, if specified.
                 if ("function" === typeof click) {
-                    var handler = function (event) {
+                    domLog.wrapper.addEventListener("click", function (event) {
                         click(event, ui);
-                    };
-                    jq ? $(domLog.wrapper).on("click", handler) : domLog.wrapper.addEventListener("click", handler);
+                    });
                 }
 
                 if(!logsUI.elements) {
@@ -380,7 +384,6 @@
                 var dialogUI = {};
                 var clickedButton;
                 var input = domDialog.input;
-                var label = domDialog.label;
 
                 for (var i = 0; i < buttons.length; i++) {
                     if(buttons[i].type === "ok") {
@@ -388,19 +391,9 @@
                     }
                 }
 
-                // Set default value/placeholder of input
-                if (input) {
-                    if (typeof this.promptPlaceholder === "string") {
-                        // Set the label, if available, for MDL, etc.
-                        if (label) {
-                            label.textContent = this.promptPlaceholder;
-                        } else {
-                            input.placeholder = this.promptPlaceholder;
-                        }
-                    }
-                    if (typeof this.promptValue === "string") {
-                        input.value = this.promptValue;
-                    }
+                // Set default value of input
+                if (input && typeof this.promptValue === "string") {
+                    input.value = this.promptValue;
                 }
 
                 dialogUI.dom = domDialog;
@@ -497,7 +490,7 @@
 
                 this.parent.appendChild(domDialog.container);
                 setTimeout(function() {
-                    jq ? $(domDialog.container).removeClass("hide") : domDialog.container.classList.remove("hide");
+                    removeClass(domDialog.container, "hide");
                     dialogUI.centerDialog();
                     if(input && item.type && item.type === "prompt") {
                         input.select();
@@ -542,51 +535,57 @@
                 if(typeof theme === "string") {
                     switch (theme.toLowerCase()) {
                         case "bootstrap":
-                            this.dialogButtons.ok.template = '<button data-alertify-btn="ok" class="ok btn btn-primary" tabindex="1"></button>';
-                            this.dialogButtons.cancel.template = '<button data-alertify-btn="cancel" class="cancel btn btn-default" tabindex="2"></button>';
-                            this.templates.dialog.input = "<input data-alertify-input class='form-control' type='text'>";
+                            this.dialogButtons.ok.template = '<button data-alertify-btn="ok" class="btn btn-primary" tabindex="1"></button>';
+                            this.dialogButtons.cancel.template = '<button data-alertify-btn="cancel" class="btn btn-danger" tabindex="2"></button>';
+                            this.dialogButtons.custom.template = '<button data-alertify-btn="custom" class="btn btn-default" tabindex="3"></button>';
+                            this.templates.dialogInput = "<input data-alertify-input class='form-control' type='text'>";
                             break;
                         case "purecss":
-                            this.dialogButtons.ok.template = '<button data-alertify-btn="ok" class="ok pure-button" tabindex="1"></button>';
-                            this.dialogButtons.cancel.template = '<button data-alertify-btn="cancel" class="cancel pure-button" tabindex="2"></button>';
+                            this.dialogButtons.ok.template = '<button data-alertify-btn="ok" class="pure-button" tabindex="1"></button>';
+                            this.dialogButtons.cancel.template = '<button data-alertify-btn="cancel" class="pure-button" tabindex="2"></button>';
+                            this.dialogButtons.custom.template = '<button data-alertify-btn="custom" class="pure-button" tabindex="3"></button>';
                             break;
                         case "mdl":
                         case "material-design-light":
-                            this.dialogButtons.ok.template = '<button data-alertify-btn="ok" class="ok mdl-button mdl-js-button mdl-js-ripple-effect"  tabindex="1"></button>';
-                            this.dialogButtons.cancel.template = '<button data-alertify-btn="cancel" class="cancel mdl-button mdl-js-button mdl-js-ripple-effect" tabindex="2"></button>';
-                            this.templates.dialog.input = '<div class="mdl-textfield mdl-js-textfield"><input data-alertify-input class="mdl-textfield__input"><label data-alertify-input-label class="md-textfield__label"></label></div>';
+                            this.dialogButtons.ok.template = '<button data-alertify-btn="ok" class=" mdl-button mdl-js-button mdl-js-ripple-effect"  tabindex="1"></button>';
+                            this.dialogButtons.cancel.template = '<button data-alertify-btn="cancel" class=" mdl-button mdl-js-button mdl-js-ripple-effect" tabindex="2"></button>';
+                            this.dialogButtons.custom.template = '<button data-alertify-btn="custom" class=" mdl-button mdl-js-button mdl-js-ripple-effect" tabindex="3"></button>';
+                            this.templates.dialogInput = '<div class="mdl-textfield mdl-js-textfield"><input data-alertify-input class="mdl-textfield__input"></div>';
                             break;
                         case "angular-material":
-                            this.dialogButtons.ok.template = '"<button data-alertify-btn="ok" class="ok md-primary md-button" tabindex="1"></button>"';
-                            this.dialogButtons.cancel.template = '<button data-alertify-btn="cancel" class="cancel md-button" tabindex="2"></button>';
-                            this.templates.dialog.input = '<div layout="column"><md-input-container md-no-float><input data-alertify-input type="text"></md-input-container></div>';
+                            this.dialogButtons.ok.template = '<button data-alertify-btn="ok" class="md-primary md-button" tabindex="1"></button>';
+                            this.dialogButtons.cancel.template = '<button data-alertify-btn="cancel" class="md-button" tabindex="2"></button>';
+                            this.dialogButtons.custom.template = '<button data-alertify-btn="custom" class="md-button" tabindex="3"></button>';
+                            this.templates.dialogInput = '<div layout="column"><md-input-container md-no-float><input data-alertify-input type="text"></md-input-container></div>';
                             break;
                         case "default":
                         default:
-                            this.dialogButtons.ok.template = _defaults.dialogButtons.ok.template;
-                            this.dialogButtons.cancel.template = _defaults.dialogButtons.cancel.template;
-                            this.templates.dialog.input = _defaults.templates.dialog.input;
+                            this.dialogButtons = clone(_defaults.dialogButtons);
+                            this.templates = clone(_defaults.templates);
                             break;
                     }
                 }
                 if(typeof theme === "object") {
-                    this.templates.dialog = theme.dialog || this.templates.dialog;
-                    this.templates.log = theme.log || this.templates.log;
+                    var tmplList = Object.keys(this.templates);
+                    for (var name in theme) {
+                        if(tmplList.indexOf(name) === -1) {
+                            throw new Error('Wrong template name: "' + name + '". Valid values: "' + tmplList.join('", "') + '"');
+                        }
+                        this.templates[name] = theme[name];
+                    }
                 }
             },
 
             reset: function() {
-                this.theme("default");
+                this.setTheme("default");
                 this.parent = _defaults.parent;
                 this.dialogWidth = _defaults.dialogWidth;
                 this.dialogPersistent = _defaults.dialogPersistent;
                 this.dialogContainerClass = _defaults.dialogContainerClass;
                 this.promptValue = "";
-                this.promptPlaceholder = "";
                 this.logDelay = _defaults.logDelay;
                 this.logMaxItems = _defaults.logMaxItems;
                 this.logPosition = _defaults.logPosition;
-                this.logCloseOnClick = _defaults.logCloseOnClick;
                 this.logContainerClass = _defaults.logContainerClass;
                 this.logTemplateMethod = null;
             },
@@ -614,6 +613,7 @@
 
         return {
             _$$alertify: _alertify,
+            _$$defaults: _defaults,
             parent: function(elem) {
                 _alertify.parent = elem;
             },
@@ -675,20 +675,12 @@
                 _alertify.setDelay(time);
                 return this;
             },
-            placeholder: function(str) {
-                _alertify.promptPlaceholder = str;
-                return this;
-            },
-            defaultValue: function(str) {
+            inputDefaultValue: function(str) {
                 _alertify.promptValue = str;
                 return this;
             },
-            maxLogItems: function(num) {
+            logMaxItems: function(num) {
                 _alertify.setLogMaxItems(num);
-                return this;
-            },
-            closeLogOnClick: function(bool) {
-                _alertify.setCloseLogOnClick(bool);
                 return this;
             },
             logPosition: function(str) {

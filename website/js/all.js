@@ -1,4 +1,4 @@
-!function(){"use strict";function t(t){var e=t.getBoundingClientRect(),n=document.body.getBoundingClientRect();t.style.top=n.height/2-e.height/2+"px"}function e(t){var e=document.createElement("div");return e.innerHTML=t,e.firstChild}function n(t,e){for(var o=t.length?t:[t],i=0;i<o.length;i++){if(null!==o[i].getAttribute("data-"+e))return o[i];if(o[i].childNodes.length)return n(o[i].childNodes,e)}}function o(){var o={parent:document.body,dialogWidth:"400px",dialogPersistent:!0,dialogContainerClass:"alertify",dialogButtons:{ok:{label:"Ok",autoClose:!0,template:'<button data-alertify-btn="ok" tabindex="1"></button>'},cancel:{label:"Cancel",autoClose:!0,template:'<button data-alertify-btn="cancel" tabindex="2"></button>'},custom:{label:"Custom",autoClose:!1,template:'<button data-alertify-btn tabindex="3"></button>'}},logDelay:5e3,logMaxItems:2,logPosition:"bottom left",logCloseOnClick:!1,logContainerClass:"alertify-logs",logTemplateMethod:null,templates:{dialog:{buttonsHolder:"<nav data-alertify-btn-holder></nav>",message:"<div data-alertify-msg></div>",input:'<input data-alertify-input type="text">'},log:{message:"<div data-alertify-log-msg></div>"}}},l={version:"1.0.11",parent:o.parent,dialogWidth:o.dialogWidth,dialogPersistent:o.dialogPersistent,dialogContainerClass:o.dialogContainerClass,dialogButtons:o.dialogButtons,promptValue:"",promptPlaceholder:"",logDelay:o.logDelay,logMaxItems:o.logMaxItems,logPosition:o.logPosition,logCloseOnClick:o.logCloseOnClick,logContainerClass:o.logContainerClass,logTemplateMethod:o.logTemplateMethod,templates:o.templates,build:function(t,o){var i={};if(i.container=document.createElement("div"),i.container.className=this.dialogContainerClass+" hide",i.wrapper=document.createElement("div"),i.wrapper.className="dialog",i.dialog=document.createElement("div"),i.dialog.style.width=this.dialogWidth,i.content=document.createElement("div"),i.content.className="content","dialog"===t.type?i.content.innerHTML=t.message:(i.messageWrapper=e(this.templates.dialog.message),i.message=n(i.messageWrapper,"alertify-msg"),i.message.innerHTML=t.message,i.content.appendChild(i.messageWrapper)),i.buttonsWrapper=e(this.templates.dialog.buttonsHolder),i.buttonsHolder=n(i.buttonsWrapper,"alertify-btn-holder"),"prompt"===t.type){var a=e(this.templates.dialog.input);i.input=n(a,"alertify-input"),i.label=n(a,"alertify-input-label"),i.content.appendChild(a)}i.container.appendChild(i.wrapper),i.wrapper.appendChild(i.dialog),i.dialog.appendChild(i.content),i.dialog.appendChild(i.buttonsWrapper),i.buttonsHolder.innerHTML="",i.buttons=[];for(var l=0;l<o.length;l++){var s=n(o[l].element,"alertify-btn");s.innerHTML=o[l].label,i.buttonsHolder.appendChild(o[l].element)}return i},createButtonsDefinition:function(t){for(var n=[],o=0;o<t.buttons.length;o++){var i=this.buildButtonObject(t.buttons[o]);("dialog"===t.type||"alert"===t.type&&"ok"===i.type||["confirm","prompt"].indexOf(t.type)!==-1&&["ok","cancel"].indexOf(i.type)!==-1)&&(i.element=e(i.template),n.push(i))}return n},buildButtonObject:function(t){var e={},n=t.type||"custom",o=this.dialogButtons,i=["ok","cancel","custom"];if("undefined"!=typeof t.type&&i.indexOf(t.type)===-1)throw new Error('Wrong button type: "'+t.type+'". Valid values: "'+i.join('", "')+'"');return e.type=n,e.label="undefined"!=typeof t.label?t.label:o[n].label,e.autoClose="undefined"!=typeof t.autoClose?t.autoClose:o[n].autoClose,e.template="undefined"!=typeof t.template?t.template:o[n].template,e.click="undefined"!=typeof t.click?t.click:o[n].click,e},setCloseLogOnClick:function(t){this.logCloseOnClick=t},close:function(t,e){this.logCloseOnClick&&t.addEventListener("click",function(){s(t)}),e=e&&!isNaN(+e)?+e:this.logDelay,e<0?s(t):e>0&&setTimeout(function(){s(t)},e)},dialog:function(t,e,n){return this.setup({type:e,message:t,buttons:n})},log:function(t,e,n){if(i&&i.elements.length){var o=i.elements.length-this.logMaxItems;if(o>=0)for(var a=0,l=o+1;a<l;a++)this.close(i.elements[a],-1)}this.notify(t,e,n)},setLogContainerClass:function(t){this.logContainerClass=o.logContainerClass+" "+t},setLogPosition:function(t){var e=t.split(" ");["top","bottom"].indexOf(e[0])!==-1&&["left","right"].indexOf(e[1])!==-1&&(this.logPosition=t)},setupLogContainer:function(){var t=this.logContainerClass+" "+this.logPosition,e=i&&i.container.parentNode!==this.parent;i&&!e||(e&&s(i.container),i={},i.container=document.createElement("div"),i.container.className=t,this.parent.appendChild(i.container)),i.container.className!==t&&(i.container.className=t)},notify:function(t,o,r){this.setupLogContainer();var u={},d={};if(u.dom=d,d.wrapper=e(this.templates.log.message),d.message=n(d.wrapper,"alertify-log-msg"),a?$(d.message).addClass(o):d.message.classList.add(o),l.logTemplateMethod?d.message.innerHTML=l.logTemplateMethod(t):d.message.innerHTML=t,u.closeLog=function(){s(d.wrapper)},"function"==typeof r){var c=function(t){r(t,u)};a?$(d.wrapper).on("click",c):d.wrapper.addEventListener("click",c)}i.elements||(i.elements=[]),i.elements.push(d.wrapper),i.container.appendChild(d.wrapper),setTimeout(function(){d.wrapper.className+=" show"},10),this.close(d.wrapper,this.logDelay)},setup:function(e){function n(t){"function"!=typeof t&&(t=function(){});for(var e=0;e<l.length;e++){var n=l[e],a=function(e){return function(n){i=e,e.click&&"function"==typeof e.click&&e.click(n,u),t({ui:u,event:n}),e.autoClose===!0&&u.closeDialog()}}(n);n.element.addEventListener("click",a)}d&&d.addEventListener("keyup",function(t){13===t.which&&o.click()})}for(var o,i,l=this.createButtonsDefinition(e),r=this.build(e,l),u={},d=r.input,c=r.label,p=0;p<l.length;p++)"ok"===l[p].type&&(o=l[p].element);d&&("string"==typeof this.promptPlaceholder&&(c?c.textContent=this.promptPlaceholder:d.placeholder=this.promptPlaceholder),"string"==typeof this.promptValue&&(d.value=this.promptValue)),u.dom=r,u.closeDialog=function(){s(r.container)},u.centerDialog=function(){t(r.wrapper)},u.setMessage=function(t){r.message.innerHTML=t},u.setContent=function(t){r.content.innerHTML=t},u.getInputValue=function(){if(r.input)return r.input.value},u.getButtonObject=function(){if(i)return{type:i.type,label:i.label,autoClose:i.autoClose,element:i.element}};var g;return"function"==typeof Promise?g=new Promise(n):n(),this.dialogPersistent===!1&&r.container.addEventListener("click",function(t){t.target!==this&&t.target!==r.wrapper||s(r.container)}),window.onresize=function(){u.centerDialog()},this.parent.appendChild(r.container),setTimeout(function(){a?$(r.container).removeClass("hide"):r.container.classList.remove("hide"),u.centerDialog(),d&&e.type&&"prompt"===e.type?(d.select(),d.focus()):o&&o.focus()},100),g},setDelay:function(t){return t=t||0,this.logDelay=isNaN(t)?o.logDelay:parseInt(t,10),this},setLogMaxItems:function(t){this.logMaxItems=parseInt(t||o.logMaxItems)},setDialogWidth:function(t){"number"==typeof t&&(t+="px"),this.dialogWidth="string"==typeof t?t:o.dialogWidth},setDialogPersistent:function(t){this.dialogPersistent=t},setDialogContainerClass:function(t){this.dialogContainerClass=o.dialogContainerClass+" "+t},setTheme:function(t){if(t){if("string"==typeof t)switch(t.toLowerCase()){case"bootstrap":this.dialogButtons.ok.template='<button data-alertify-btn="ok" class="ok btn btn-primary" tabindex="1"></button>',this.dialogButtons.cancel.template='<button data-alertify-btn="cancel" class="cancel btn btn-default" tabindex="2"></button>',this.templates.dialog.input="<input data-alertify-input class='form-control' type='text'>";break;case"purecss":this.dialogButtons.ok.template='<button data-alertify-btn="ok" class="ok pure-button" tabindex="1"></button>',this.dialogButtons.cancel.template='<button data-alertify-btn="cancel" class="cancel pure-button" tabindex="2"></button>';break;case"mdl":case"material-design-light":this.dialogButtons.ok.template='<button data-alertify-btn="ok" class="ok mdl-button mdl-js-button mdl-js-ripple-effect"  tabindex="1"></button>',this.dialogButtons.cancel.template='<button data-alertify-btn="cancel" class="cancel mdl-button mdl-js-button mdl-js-ripple-effect" tabindex="2"></button>',this.templates.dialog.input='<div class="mdl-textfield mdl-js-textfield"><input data-alertify-input class="mdl-textfield__input"><label data-alertify-input-label class="md-textfield__label"></label></div>';break;case"angular-material":this.dialogButtons.ok.template='"<button data-alertify-btn="ok" class="ok md-primary md-button" tabindex="1"></button>"',this.dialogButtons.cancel.template='<button data-alertify-btn="cancel" class="cancel md-button" tabindex="2"></button>',this.templates.dialog.input='<div layout="column"><md-input-container md-no-float><input data-alertify-input type="text"></md-input-container></div>';break;case"default":default:this.dialogButtons.ok.template=o.dialogButtons.ok.template,this.dialogButtons.cancel.template=o.dialogButtons.cancel.template,this.templates.dialog.input=o.templates.dialog.input}"object"==typeof t&&(this.templates.dialog=t.dialog||this.templates.dialog,this.templates.log=t.log||this.templates.log)}},reset:function(){this.theme("default"),this.parent=o.parent,this.dialogWidth=o.dialogWidth,this.dialogPersistent=o.dialogPersistent,this.dialogContainerClass=o.dialogContainerClass,this.promptValue="",this.promptPlaceholder="",this.logDelay=o.logDelay,this.logMaxItems=o.logMaxItems,this.logPosition=o.logPosition,this.logCloseOnClick=o.logCloseOnClick,this.logContainerClass=o.logContainerClass,this.logTemplateMethod=null},injectCSS:function(){if(!document.querySelector("#alertifyCSS")){var t=document.getElementsByTagName("head")[0],e=document.createElement("style");e.type="text/css",e.id="alertifyCSS",t.insertBefore(e,t.firstChild)}},removeCSS:function(){var t=document.querySelector("#alertifyCSS");t&&t.parentNode&&t.parentNode.removeChild(t)}};return l.injectCSS(),{_$$alertify:l,parent:function(t){l.parent=t},reset:function(){return l.reset(),this},dialog:function(t,e){return l.dialog(t,"dialog",e)||this},alert:function(t,e){return e=e||{},e.type="ok",l.dialog(t,"alert",[e])||this},confirm:function(t,e,n){return e=e||{},n=n||{},e.type="ok",n.type="cancel",l.dialog(t,"confirm",[e,n])||this},prompt:function(t,e,n){return e=e||{},n=n||{},e.type="ok",n.type="cancel",l.dialog(t,"prompt",[e,n])||this},log:function(t,e){return l.log(t,"default",e),this},success:function(t,e){return l.log(t,"success",e),this},warning:function(t,e){return l.log(t,"warning",e),this},error:function(t,e){return l.log(t,"error",e),this},dialogWidth:function(t){return l.setDialogWidth(t),this},dialogPersistent:function(t){return l.setDialogPersistent(t),this},dialogContainerClass:function(t){return l.setDialogContainerClass(t||""),this},delay:function(t){return l.setDelay(t),this},placeholder:function(t){return l.promptPlaceholder=t,this},defaultValue:function(t){return l.promptValue=t,this},maxLogItems:function(t){return l.setLogMaxItems(t),this},closeLogOnClick:function(t){return l.setCloseLogOnClick(t),this},logPosition:function(t){return l.setLogPosition(t||""),this},logContainerClass:function(t){return l.setLogContainerClass(t||""),this},logMessageTemplate:function(t){return l.logTemplateMethod=t,this},theme:function(t){return l.setTheme(t),this},clearDialogs:function(){for(var t;t=l.parent.querySelector(":scope > ."+o.dialogContainerClass);)l.parent.removeChild(t);return this},clearLogs:function(){return i&&(i.container.innerHTML=""),this},version:l.version}}var i,a=!!window.jQuery,l=500,s=function(t){if(t){var e=function(){t&&t.parentNode&&t.parentNode.removeChild(t)};a?$(t).removeClass("show"):t.classList.remove("show"),a?$(t).addClass("hide"):t.classList.add("hide"),a?$(t).on("transitionend",e):t.addEventListener("transitionend",e),setTimeout(e,l)}};if("undefined"!=typeof module&&module&&module.exports){module.exports=function(){return new o};var r=new o;for(var u in r)module.exports[u]=r[u]}else"function"==typeof define&&define.amd?define(function(){return new o}):window.alertify=new o}();
+!function(){"use strict";function t(t){var e=t.offsetHeight,n=window.innerHeight?window.innerHeight:document.documentElement.clientHeight?document.documentElement.clientHeight:screen.height,o=n/2-e/2;t.style.top=o+"px"}function e(t){var e=document.createElement("div");return e.innerHTML=t,e.firstChild}function n(t,e){var n="data-"+e,o=document.createElement("div");o.appendChild(t);var i=o.querySelector("["+n+"]");if(!i)throw new Error('Unable to find: "'+n+'" attribute.');return i}function o(t,e){var n=t.getAttribute("class"),o=n?n.split(" "):[],i=o.indexOf(e);i!==-1&&o.splice(i,1),t.className=o.join(" ")}function i(t,e){var n=t.getAttribute("class"),o=n?n.split(" "):[];o.push(e),t.className=o.join(" ")}function a(t){return JSON.parse(JSON.stringify(t))}function l(){var l={parent:document.body,dialogWidth:"400px",dialogPersistent:!0,dialogContainerClass:"alertify",dialogButtons:{ok:{label:"Ok",autoClose:!0,template:'<button data-alertify-btn="ok" tabindex="1"></button>'},cancel:{label:"Cancel",autoClose:!0,template:'<button data-alertify-btn="cancel" tabindex="2"></button>'},custom:{label:"Custom",autoClose:!1,template:'<button data-alertify-btn tabindex="3"></button>'}},logDelay:5e3,logMaxItems:2,logPosition:"bottom left",logContainerClass:"alertify-logs",logTemplateMethod:null,templates:{dialogButtonsHolder:"<nav data-alertify-btn-holder></nav>",dialogMessage:"<div data-alertify-msg></div>",dialogInput:'<input data-alertify-input type="text">',logMessage:"<div data-alertify-log-msg></div>"}},r={version:"1.0.11",parent:l.parent,dialogWidth:l.dialogWidth,dialogPersistent:l.dialogPersistent,dialogContainerClass:l.dialogContainerClass,dialogButtons:a(l.dialogButtons),promptValue:"",logDelay:l.logDelay,logMaxItems:l.logMaxItems,logPosition:l.logPosition,logContainerClass:l.logContainerClass,logTemplateMethod:l.logTemplateMethod,templates:a(l.templates),build:function(t,o){var i={};if(i.container=document.createElement("div"),i.container.className=this.dialogContainerClass+" hide",i.wrapper=document.createElement("div"),i.wrapper.className="dialog",i.dialog=document.createElement("div"),i.dialog.style.width=this.dialogWidth,i.content=document.createElement("div"),i.content.className="content","dialog"===t.type?i.content.innerHTML=t.message:(i.messageWrapper=e(this.templates.dialogMessage),i.message=n(i.messageWrapper,"alertify-msg"),i.message.innerHTML=t.message,i.content.appendChild(i.messageWrapper)),i.buttonsWrapper=e(this.templates.dialogButtonsHolder),i.buttonsHolder=n(i.buttonsWrapper,"alertify-btn-holder"),"prompt"===t.type){var a=e(this.templates.dialogInput);i.input=n(a,"alertify-input"),i.content.appendChild(a)}i.container.appendChild(i.wrapper),i.wrapper.appendChild(i.dialog),i.dialog.appendChild(i.content),i.dialog.appendChild(i.buttonsWrapper),i.buttonsHolder.innerHTML="",i.buttons=[];for(var l=0;l<o.length;l++){var s=n(o[l].element,"alertify-btn");s.innerHTML=o[l].label,i.buttonsHolder.appendChild(o[l].element)}return i},createButtonsDefinition:function(t){for(var n=[],o=0;o<t.buttons.length;o++){var i=this.buildButtonObject(t.buttons[o]);("dialog"===t.type||"alert"===t.type&&"ok"===i.type||["confirm","prompt"].indexOf(t.type)!==-1&&["ok","cancel"].indexOf(i.type)!==-1)&&(i.element=e(i.template),n.push(i))}return n},buildButtonObject:function(t){var e={},n=t.type||"custom",o=this.dialogButtons,i=["ok","cancel","custom"];if("undefined"!=typeof t.type&&i.indexOf(t.type)===-1)throw new Error('Wrong button type: "'+t.type+'". Valid values: "'+i.join('", "')+'"');return e.type=n,e.label="undefined"!=typeof t.label?t.label:o[n].label,e.autoClose="undefined"!=typeof t.autoClose?t.autoClose:o[n].autoClose,e.template="undefined"!=typeof t.template?t.template:o[n].template,e.click="undefined"!=typeof t.click?t.click:o[n].click,e},close:function(t,e){e=e&&!isNaN(+e)?+e:this.logDelay,e<0?u(t):e>0&&setTimeout(function(){u(t)},e)},dialog:function(t,e,n){return this.setup({type:e,message:t,buttons:n})},log:function(t,e,n){if(s&&s.elements.length){var o=s.elements.length-this.logMaxItems;if(o>=0)for(var i=0,a=o+1;i<a;i++)this.close(s.elements[i],-1)}this.notify(t,e,n)},setLogContainerClass:function(t){this.logContainerClass=l.logContainerClass+" "+t},setLogPosition:function(t){var e=t.split(" ");["top","bottom"].indexOf(e[0])!==-1&&["left","right"].indexOf(e[1])!==-1&&(this.logPosition=t)},setupLogContainer:function(){var t=this.logContainerClass+" "+this.logPosition,e=s&&s.container.parentNode!==this.parent;s&&!e||(e&&u(s.container),s={},s.container=document.createElement("div"),s.container.className=t,this.parent.appendChild(s.container)),s.container.className!==t&&(s.container.className=t)},notify:function(t,o,a){this.setupLogContainer();var l={},d={};l.dom=d,d.wrapper=e(this.templates.logMessage),d.message=n(d.wrapper,"alertify-log-msg"),i(d.message,o),r.logTemplateMethod?d.message.innerHTML=r.logTemplateMethod(t):d.message.innerHTML=t,l.closeLog=function(){u(d.wrapper)},"function"==typeof a&&d.wrapper.addEventListener("click",function(t){a(t,l)}),s.elements||(s.elements=[]),s.elements.push(d.wrapper),s.container.appendChild(d.wrapper),setTimeout(function(){d.wrapper.className+=" show"},10),this.close(d.wrapper,this.logDelay)},setup:function(e){function n(t){"function"!=typeof t&&(t=function(){});for(var e=0;e<l.length;e++){var n=l[e],o=function(e){return function(n){a=e,e.click&&"function"==typeof e.click&&e.click(n,r),t({ui:r,event:n}),e.autoClose===!0&&r.closeDialog()}}(n);n.element.addEventListener("click",o)}d&&d.addEventListener("keyup",function(t){13===t.which&&i.click()})}for(var i,a,l=this.createButtonsDefinition(e),s=this.build(e,l),r={},d=s.input,c=0;c<l.length;c++)"ok"===l[c].type&&(i=l[c].element);d&&"string"==typeof this.promptValue&&(d.value=this.promptValue),r.dom=s,r.closeDialog=function(){u(s.container)},r.centerDialog=function(){t(s.wrapper)},r.setMessage=function(t){s.message.innerHTML=t},r.setContent=function(t){s.content.innerHTML=t},r.getInputValue=function(){if(s.input)return s.input.value},r.getButtonObject=function(){if(a)return{type:a.type,label:a.label,autoClose:a.autoClose,element:a.element}};var p;return"function"==typeof Promise?p=new Promise(n):n(),this.dialogPersistent===!1&&s.container.addEventListener("click",function(t){t.target!==this&&t.target!==s.wrapper||u(s.container)}),window.onresize=function(){r.centerDialog()},this.parent.appendChild(s.container),setTimeout(function(){o(s.container,"hide"),r.centerDialog(),d&&e.type&&"prompt"===e.type?(d.select(),d.focus()):i&&i.focus()},100),p},setDelay:function(t){return t=t||0,this.logDelay=isNaN(t)?l.logDelay:parseInt(t,10),this},setLogMaxItems:function(t){this.logMaxItems=parseInt(t||l.logMaxItems)},setDialogWidth:function(t){"number"==typeof t&&(t+="px"),this.dialogWidth="string"==typeof t?t:l.dialogWidth},setDialogPersistent:function(t){this.dialogPersistent=t},setDialogContainerClass:function(t){this.dialogContainerClass=l.dialogContainerClass+" "+t},setTheme:function(t){if(t){if("string"==typeof t)switch(t.toLowerCase()){case"bootstrap":this.dialogButtons.ok.template='<button data-alertify-btn="ok" class="btn btn-primary" tabindex="1"></button>',this.dialogButtons.cancel.template='<button data-alertify-btn="cancel" class="btn btn-danger" tabindex="2"></button>',this.dialogButtons.custom.template='<button data-alertify-btn="custom" class="btn btn-default" tabindex="3"></button>',this.templates.dialogInput="<input data-alertify-input class='form-control' type='text'>";break;case"purecss":this.dialogButtons.ok.template='<button data-alertify-btn="ok" class="pure-button" tabindex="1"></button>',this.dialogButtons.cancel.template='<button data-alertify-btn="cancel" class="pure-button" tabindex="2"></button>',this.dialogButtons.custom.template='<button data-alertify-btn="custom" class="pure-button" tabindex="3"></button>';break;case"mdl":case"material-design-light":this.dialogButtons.ok.template='<button data-alertify-btn="ok" class=" mdl-button mdl-js-button mdl-js-ripple-effect"  tabindex="1"></button>',this.dialogButtons.cancel.template='<button data-alertify-btn="cancel" class=" mdl-button mdl-js-button mdl-js-ripple-effect" tabindex="2"></button>',this.dialogButtons.custom.template='<button data-alertify-btn="custom" class=" mdl-button mdl-js-button mdl-js-ripple-effect" tabindex="3"></button>',this.templates.dialogInput='<div class="mdl-textfield mdl-js-textfield"><input data-alertify-input class="mdl-textfield__input"></div>';break;case"angular-material":this.dialogButtons.ok.template='<button data-alertify-btn="ok" class="md-primary md-button" tabindex="1"></button>',this.dialogButtons.cancel.template='<button data-alertify-btn="cancel" class="md-button" tabindex="2"></button>',this.dialogButtons.custom.template='<button data-alertify-btn="custom" class="md-button" tabindex="3"></button>',this.templates.dialogInput='<div layout="column"><md-input-container md-no-float><input data-alertify-input type="text"></md-input-container></div>';break;case"default":default:this.dialogButtons=a(l.dialogButtons),this.templates=a(l.templates)}if("object"==typeof t){var e=Object.keys(this.templates);for(var n in t){if(e.indexOf(n)===-1)throw new Error('Wrong template name: "'+n+'". Valid values: "'+e.join('", "')+'"');this.templates[n]=t[n]}}}},reset:function(){this.setTheme("default"),this.parent=l.parent,this.dialogWidth=l.dialogWidth,this.dialogPersistent=l.dialogPersistent,this.dialogContainerClass=l.dialogContainerClass,this.promptValue="",this.logDelay=l.logDelay,this.logMaxItems=l.logMaxItems,this.logPosition=l.logPosition,this.logContainerClass=l.logContainerClass,this.logTemplateMethod=null},injectCSS:function(){if(!document.querySelector("#alertifyCSS")){var t=document.getElementsByTagName("head")[0],e=document.createElement("style");e.type="text/css",e.id="alertifyCSS",t.insertBefore(e,t.firstChild)}},removeCSS:function(){var t=document.querySelector("#alertifyCSS");t&&t.parentNode&&t.parentNode.removeChild(t)}};return r.injectCSS(),{_$$alertify:r,_$$defaults:l,parent:function(t){r.parent=t},reset:function(){return r.reset(),this},dialog:function(t,e){return r.dialog(t,"dialog",e)||this},alert:function(t,e){return e=e||{},e.type="ok",r.dialog(t,"alert",[e])||this},confirm:function(t,e,n){return e=e||{},n=n||{},e.type="ok",n.type="cancel",r.dialog(t,"confirm",[e,n])||this},prompt:function(t,e,n){return e=e||{},n=n||{},e.type="ok",n.type="cancel",r.dialog(t,"prompt",[e,n])||this},log:function(t,e){return r.log(t,"default",e),this},success:function(t,e){return r.log(t,"success",e),this},warning:function(t,e){return r.log(t,"warning",e),this},error:function(t,e){return r.log(t,"error",e),this},dialogWidth:function(t){return r.setDialogWidth(t),this},dialogPersistent:function(t){return r.setDialogPersistent(t),this},dialogContainerClass:function(t){return r.setDialogContainerClass(t||""),this},delay:function(t){return r.setDelay(t),this},inputDefaultValue:function(t){return r.promptValue=t,this},logMaxItems:function(t){return r.setLogMaxItems(t),this},logPosition:function(t){return r.setLogPosition(t||""),this},logContainerClass:function(t){return r.setLogContainerClass(t||""),this},logMessageTemplate:function(t){return r.logTemplateMethod=t,this},theme:function(t){return r.setTheme(t),this},clearDialogs:function(){for(var t;t=r.parent.querySelector(":scope > ."+l.dialogContainerClass);)r.parent.removeChild(t);return this},clearLogs:function(){return s&&(s.container.innerHTML=""),this},version:r.version}}var s,r=500,u=function(t){if(t){var e=function(){t&&t.parentNode&&t.parentNode.removeChild(t)};o(t,"show"),i(t,"hide"),t.addEventListener("transitionend",e),setTimeout(e,r)}};if("undefined"!=typeof module&&module&&module.exports){module.exports=function(){return new l};var d=new l;for(var c in d)module.exports[c]=d[c]}else"function"==typeof define&&define.amd?define(function(){return new l}):window.alertify=new l}();
 /**
  * material-design-lite - Material Design Components in CSS, JS and HTML
  * @version v1.2.0
@@ -329,7 +329,7 @@ SHORTDAY:"Sun Mon Tue Wed Thu Fri Sat".split(" "),SHORTMONTH:"Jan Feb Mar Apr Ma
 PATTERNS:[{gSize:3,lgSize:3,maxFrac:3,minFrac:0,minInt:1,negPre:"-",negSuf:"",posPre:"",posSuf:""},{gSize:3,lgSize:3,maxFrac:2,minFrac:2,minInt:1,negPre:"-\u00a4",negSuf:"",posPre:"\u00a4",posSuf:""}]},id:"en-us",localeID:"en_US",pluralCat:function(a,c){var e=a|0,f=c;void 0===f&&(f=Math.min(b(a),3));Math.pow(10,f);return 1==e&&0==f?"one":"other"}})}]),F(C.document).ready(function(){fe(C.document,Bc)}))})(window);!window.angular.$$csp().noInlineStyle&&window.angular.element(document.head).prepend('<style type="text/css">@charset "UTF-8";[ng\\:cloak],[ng-cloak],[data-ng-cloak],[x-ng-cloak],.ng-cloak,.x-ng-cloak,.ng-hide:not(.ng-hide-animate){display:none !important;}ng\\:form{display:block;}.ng-animate-shim{visibility:hidden;}.ng-anchor{position:absolute;}</style>');
 //# sourceMappingURL=angular.min.js.map
 
-angular.module("ngAlertify",[]).factory("alertify",function(){"use strict";var t={exports:!0};!function(){function e(t){var e=t.getBoundingClientRect(),n=document.body.getBoundingClientRect();t.style.top=n.height/2-e.height/2+"px"}function n(t){var e=document.createElement("div");return e.innerHTML=t,e.firstChild}function o(t,e){for(var n=t.length?t:[t],i=0;i<n.length;i++){if(null!==n[i].getAttribute("data-"+e))return n[i];if(n[i].childNodes.length)return o(n[i].childNodes,e)}}function i(){var t={parent:document.body,dialogWidth:"400px",dialogPersistent:!0,dialogContainerClass:"alertify",dialogButtons:{ok:{label:"Ok",autoClose:!0,template:'<button data-alertify-btn="ok" tabindex="1"></button>'},cancel:{label:"Cancel",autoClose:!0,template:'<button data-alertify-btn="cancel" tabindex="2"></button>'},custom:{label:"Custom",autoClose:!1,template:'<button data-alertify-btn tabindex="3"></button>'}},logDelay:5e3,logMaxItems:2,logPosition:"bottom left",logCloseOnClick:!1,logContainerClass:"alertify-logs",logTemplateMethod:null,templates:{dialog:{buttonsHolder:"<nav data-alertify-btn-holder></nav>",message:"<div data-alertify-msg></div>",input:'<input data-alertify-input type="text">'},log:{message:"<div data-alertify-log-msg></div>"}}},i={version:"1.0.11",parent:t.parent,dialogWidth:t.dialogWidth,dialogPersistent:t.dialogPersistent,dialogContainerClass:t.dialogContainerClass,dialogButtons:t.dialogButtons,promptValue:"",promptPlaceholder:"",logDelay:t.logDelay,logMaxItems:t.logMaxItems,logPosition:t.logPosition,logCloseOnClick:t.logCloseOnClick,logContainerClass:t.logContainerClass,logTemplateMethod:t.logTemplateMethod,templates:t.templates,build:function(t,e){var i={};if(i.container=document.createElement("div"),i.container.className=this.dialogContainerClass+" hide",i.wrapper=document.createElement("div"),i.wrapper.className="dialog",i.dialog=document.createElement("div"),i.dialog.style.width=this.dialogWidth,i.content=document.createElement("div"),i.content.className="content","dialog"===t.type?i.content.innerHTML=t.message:(i.messageWrapper=n(this.templates.dialog.message),i.message=o(i.messageWrapper,"alertify-msg"),i.message.innerHTML=t.message,i.content.appendChild(i.messageWrapper)),i.buttonsWrapper=n(this.templates.dialog.buttonsHolder),i.buttonsHolder=o(i.buttonsWrapper,"alertify-btn-holder"),"prompt"===t.type){var a=n(this.templates.dialog.input);i.input=o(a,"alertify-input"),i.label=o(a,"alertify-input-label"),i.content.appendChild(a)}i.container.appendChild(i.wrapper),i.wrapper.appendChild(i.dialog),i.dialog.appendChild(i.content),i.dialog.appendChild(i.buttonsWrapper),i.buttonsHolder.innerHTML="",i.buttons=[];for(var l=0;l<e.length;l++){var s=o(e[l].element,"alertify-btn");s.innerHTML=e[l].label,i.buttonsHolder.appendChild(e[l].element)}return i},createButtonsDefinition:function(t){for(var e=[],o=0;o<t.buttons.length;o++){var i=this.buildButtonObject(t.buttons[o]);("dialog"===t.type||"alert"===t.type&&"ok"===i.type||["confirm","prompt"].indexOf(t.type)!==-1&&["ok","cancel"].indexOf(i.type)!==-1)&&(i.element=n(i.template),e.push(i))}return e},buildButtonObject:function(t){var e={},n=t.type||"custom",o=this.dialogButtons,i=["ok","cancel","custom"];if("undefined"!=typeof t.type&&i.indexOf(t.type)===-1)throw new Error('Wrong button type: "'+t.type+'". Valid values: "'+i.join('", "')+'"');return e.type=n,e.label="undefined"!=typeof t.label?t.label:o[n].label,e.autoClose="undefined"!=typeof t.autoClose?t.autoClose:o[n].autoClose,e.template="undefined"!=typeof t.template?t.template:o[n].template,e.click="undefined"!=typeof t.click?t.click:o[n].click,e},setCloseLogOnClick:function(t){this.logCloseOnClick=t},close:function(t,e){this.logCloseOnClick&&t.addEventListener("click",function(){r(t)}),e=e&&!isNaN(+e)?+e:this.logDelay,e<0?r(t):e>0&&setTimeout(function(){r(t)},e)},dialog:function(t,e,n){return this.setup({type:e,message:t,buttons:n})},log:function(t,e,n){if(a&&a.elements.length){var o=a.elements.length-this.logMaxItems;if(o>=0)for(var i=0,l=o+1;i<l;i++)this.close(a.elements[i],-1)}this.notify(t,e,n)},setLogContainerClass:function(e){this.logContainerClass=t.logContainerClass+" "+e},setLogPosition:function(t){var e=t.split(" ");["top","bottom"].indexOf(e[0])!==-1&&["left","right"].indexOf(e[1])!==-1&&(this.logPosition=t)},setupLogContainer:function(){var t=this.logContainerClass+" "+this.logPosition,e=a&&a.container.parentNode!==this.parent;a&&!e||(e&&r(a.container),a={},a.container=document.createElement("div"),a.container.className=t,this.parent.appendChild(a.container)),a.container.className!==t&&(a.container.className=t)},notify:function(t,e,s){this.setupLogContainer();var u={},c={};if(u.dom=c,c.wrapper=n(this.templates.log.message),c.message=o(c.wrapper,"alertify-log-msg"),l?$(c.message).addClass(e):c.message.classList.add(e),i.logTemplateMethod?c.message.innerHTML=i.logTemplateMethod(t):c.message.innerHTML=t,u.closeLog=function(){r(c.wrapper)},"function"==typeof s){var d=function(t){s(t,u)};l?$(c.wrapper).on("click",d):c.wrapper.addEventListener("click",d)}a.elements||(a.elements=[]),a.elements.push(c.wrapper),a.container.appendChild(c.wrapper),setTimeout(function(){c.wrapper.className+=" show"},10),this.close(c.wrapper,this.logDelay)},setup:function(t){function n(t){"function"!=typeof t&&(t=function(){});for(var e=0;e<a.length;e++){var n=a[e],l=function(e){return function(n){i=e,e.click&&"function"==typeof e.click&&e.click(n,u),t({ui:u,event:n}),e.autoClose===!0&&u.closeDialog()}}(n);n.element.addEventListener("click",l)}c&&c.addEventListener("keyup",function(t){13===t.which&&o.click()})}for(var o,i,a=this.createButtonsDefinition(t),s=this.build(t,a),u={},c=s.input,d=s.label,p=0;p<a.length;p++)"ok"===a[p].type&&(o=a[p].element);c&&("string"==typeof this.promptPlaceholder&&(d?d.textContent=this.promptPlaceholder:c.placeholder=this.promptPlaceholder),"string"==typeof this.promptValue&&(c.value=this.promptValue)),u.dom=s,u.closeDialog=function(){r(s.container)},u.centerDialog=function(){e(s.wrapper)},u.setMessage=function(t){s.message.innerHTML=t},u.setContent=function(t){s.content.innerHTML=t},u.getInputValue=function(){if(s.input)return s.input.value},u.getButtonObject=function(){if(i)return{type:i.type,label:i.label,autoClose:i.autoClose,element:i.element}};var g;return"function"==typeof Promise?g=new Promise(n):n(),this.dialogPersistent===!1&&s.container.addEventListener("click",function(t){t.target!==this&&t.target!==s.wrapper||r(s.container)}),window.onresize=function(){u.centerDialog()},this.parent.appendChild(s.container),setTimeout(function(){l?$(s.container).removeClass("hide"):s.container.classList.remove("hide"),u.centerDialog(),c&&t.type&&"prompt"===t.type?(c.select(),c.focus()):o&&o.focus()},100),g},setDelay:function(e){return e=e||0,this.logDelay=isNaN(e)?t.logDelay:parseInt(e,10),this},setLogMaxItems:function(e){this.logMaxItems=parseInt(e||t.logMaxItems)},setDialogWidth:function(e){"number"==typeof e&&(e+="px"),this.dialogWidth="string"==typeof e?e:t.dialogWidth},setDialogPersistent:function(t){this.dialogPersistent=t},setDialogContainerClass:function(e){this.dialogContainerClass=t.dialogContainerClass+" "+e},setTheme:function(e){if(e){if("string"==typeof e)switch(e.toLowerCase()){case"bootstrap":this.dialogButtons.ok.template='<button data-alertify-btn="ok" class="ok btn btn-primary" tabindex="1"></button>',this.dialogButtons.cancel.template='<button data-alertify-btn="cancel" class="cancel btn btn-default" tabindex="2"></button>',this.templates.dialog.input="<input data-alertify-input class='form-control' type='text'>";break;case"purecss":this.dialogButtons.ok.template='<button data-alertify-btn="ok" class="ok pure-button" tabindex="1"></button>',this.dialogButtons.cancel.template='<button data-alertify-btn="cancel" class="cancel pure-button" tabindex="2"></button>';break;case"mdl":case"material-design-light":this.dialogButtons.ok.template='<button data-alertify-btn="ok" class="ok mdl-button mdl-js-button mdl-js-ripple-effect"  tabindex="1"></button>',this.dialogButtons.cancel.template='<button data-alertify-btn="cancel" class="cancel mdl-button mdl-js-button mdl-js-ripple-effect" tabindex="2"></button>',this.templates.dialog.input='<div class="mdl-textfield mdl-js-textfield"><input data-alertify-input class="mdl-textfield__input"><label data-alertify-input-label class="md-textfield__label"></label></div>';break;case"angular-material":this.dialogButtons.ok.template='"<button data-alertify-btn="ok" class="ok md-primary md-button" tabindex="1"></button>"',this.dialogButtons.cancel.template='<button data-alertify-btn="cancel" class="cancel md-button" tabindex="2"></button>',this.templates.dialog.input='<div layout="column"><md-input-container md-no-float><input data-alertify-input type="text"></md-input-container></div>';break;case"default":default:this.dialogButtons.ok.template=t.dialogButtons.ok.template,this.dialogButtons.cancel.template=t.dialogButtons.cancel.template,this.templates.dialog.input=t.templates.dialog.input}"object"==typeof e&&(this.templates.dialog=e.dialog||this.templates.dialog,this.templates.log=e.log||this.templates.log)}},reset:function(){this.theme("default"),this.parent=t.parent,this.dialogWidth=t.dialogWidth,this.dialogPersistent=t.dialogPersistent,this.dialogContainerClass=t.dialogContainerClass,this.promptValue="",this.promptPlaceholder="",this.logDelay=t.logDelay,this.logMaxItems=t.logMaxItems,this.logPosition=t.logPosition,this.logCloseOnClick=t.logCloseOnClick,this.logContainerClass=t.logContainerClass,this.logTemplateMethod=null},injectCSS:function(){if(!document.querySelector("#alertifyCSS")){var t=document.getElementsByTagName("head")[0],e=document.createElement("style");e.type="text/css",e.id="alertifyCSS",t.insertBefore(e,t.firstChild)}},removeCSS:function(){var t=document.querySelector("#alertifyCSS");t&&t.parentNode&&t.parentNode.removeChild(t)}};return i.injectCSS(),{_$alertify:i,parent:function(t){i.parent=t},reset:function(){return i.reset(),this},dialog:function(t,e){return i.dialog(t,"dialog",e)||this},alert:function(t,e){return e=e||{},e.type="ok",i.dialog(t,"alert",[e])||this},confirm:function(t,e,n){return e=e||{},n=n||{},e.type="ok",n.type="cancel",i.dialog(t,"confirm",[e,n])||this},prompt:function(t,e,n){return e=e||{},n=n||{},e.type="ok",n.type="cancel",i.dialog(t,"prompt",[e,n])||this},log:function(t,e){return i.log(t,"default",e),this},success:function(t,e){return i.log(t,"success",e),this},warning:function(t,e){return i.log(t,"warning",e),this},error:function(t,e){return i.log(t,"error",e),this},dialogWidth:function(t){return i.setDialogWidth(t),this},dialogPersistent:function(t){return i.setDialogPersistent(t),this},dialogContainerClass:function(t){return i.setDialogContainerClass(t||""),this},delay:function(t){return i.setDelay(t),this},placeholder:function(t){return i.promptPlaceholder=t,this},defaultValue:function(t){return i.promptValue=t,this},maxLogItems:function(t){return i.setLogMaxItems(t),this},closeLogOnClick:function(t){return i.setCloseLogOnClick(t),this},logPosition:function(t){return i.setLogPosition(t||""),this},logContainerClass:function(t){return i.setLogContainerClass(t||""),this},logMessageTemplate:function(t){return i.logTemplateMethod=t,this},theme:function(t){return i.setTheme(t),this},clearDialogs:function(){for(var e;e=i.parent.querySelector(":scope > ."+t.dialogContainerClass);)i.parent.removeChild(e);return this},clearLogs:function(){return a&&(a.container.innerHTML=""),this},version:i.version}}var a,l=!!window.jQuery,s=500,r=function(t){if(t){var e=function(){t&&t.parentNode&&t.parentNode.removeChild(t)};l?$(t).removeClass("show"):t.classList.remove("show"),l?$(t).addClass("hide"):t.classList.add("hide"),l?$(t).on("transitionend",e):t.addEventListener("transitionend",e),setTimeout(e,s)}};if("undefined"!=typeof t&&t&&t.exports){t.exports=function(){return new i};var u=new i;for(var c in u)t.exports[c]=u[c]}else"function"==typeof define&&define.amd?define(function(){return new i}):window.alertify=new i}();var e=t.exports;return new e});
+angular.module("ngAlertify",[]).factory("alertify",function(){"use strict";var t={exports:!0};!function(){function e(t){var e=t.offsetHeight,n=window.innerHeight?window.innerHeight:document.documentElement.clientHeight?document.documentElement.clientHeight:screen.height,i=n/2-e/2;t.style.top=i+"px"}function n(t){var e=document.createElement("div");return e.innerHTML=t,e.firstChild}function i(t,e){var n="data-"+e,i=document.createElement("div");i.appendChild(t);var o=i.querySelector("["+n+"]");if(!o)throw new Error('Unable to find: "'+n+'" attribute.');return o}function o(t,e){var n=t.getAttribute("class"),i=n?n.split(" "):[],o=i.indexOf(e);o!==-1&&i.splice(o,1),t.className=i.join(" ")}function a(t,e){var n=t.getAttribute("class"),i=n?n.split(" "):[];i.push(e),t.className=i.join(" ")}function l(t){return JSON.parse(JSON.stringify(t))}function s(){var t={parent:document.body,dialogWidth:"400px",dialogPersistent:!0,dialogContainerClass:"alertify",dialogButtons:{ok:{label:"Ok",autoClose:!0,template:'<button data-alertify-btn="ok" tabindex="1"></button>'},cancel:{label:"Cancel",autoClose:!0,template:'<button data-alertify-btn="cancel" tabindex="2"></button>'},custom:{label:"Custom",autoClose:!1,template:'<button data-alertify-btn tabindex="3"></button>'}},logDelay:5e3,logMaxItems:2,logPosition:"bottom left",logContainerClass:"alertify-logs",logTemplateMethod:null,templates:{dialogButtonsHolder:"<nav data-alertify-btn-holder></nav>",dialogMessage:"<div data-alertify-msg></div>",dialogInput:'<input data-alertify-input type="text">',logMessage:"<div data-alertify-log-msg></div>"}},s={version:"1.0.11",parent:t.parent,dialogWidth:t.dialogWidth,dialogPersistent:t.dialogPersistent,dialogContainerClass:t.dialogContainerClass,dialogButtons:l(t.dialogButtons),promptValue:"",logDelay:t.logDelay,logMaxItems:t.logMaxItems,logPosition:t.logPosition,logContainerClass:t.logContainerClass,logTemplateMethod:t.logTemplateMethod,templates:l(t.templates),build:function(t,e){var o={};if(o.container=document.createElement("div"),o.container.className=this.dialogContainerClass+" hide",o.wrapper=document.createElement("div"),o.wrapper.className="dialog",o.dialog=document.createElement("div"),o.dialog.style.width=this.dialogWidth,o.content=document.createElement("div"),o.content.className="content","dialog"===t.type?o.content.innerHTML=t.message:(o.messageWrapper=n(this.templates.dialogMessage),o.message=i(o.messageWrapper,"alertify-msg"),o.message.innerHTML=t.message,o.content.appendChild(o.messageWrapper)),o.buttonsWrapper=n(this.templates.dialogButtonsHolder),o.buttonsHolder=i(o.buttonsWrapper,"alertify-btn-holder"),"prompt"===t.type){var a=n(this.templates.dialogInput);o.input=i(a,"alertify-input"),o.content.appendChild(a)}o.container.appendChild(o.wrapper),o.wrapper.appendChild(o.dialog),o.dialog.appendChild(o.content),o.dialog.appendChild(o.buttonsWrapper),o.buttonsHolder.innerHTML="",o.buttons=[];for(var l=0;l<e.length;l++){var s=i(e[l].element,"alertify-btn");s.innerHTML=e[l].label,o.buttonsHolder.appendChild(e[l].element)}return o},createButtonsDefinition:function(t){for(var e=[],i=0;i<t.buttons.length;i++){var o=this.buildButtonObject(t.buttons[i]);("dialog"===t.type||"alert"===t.type&&"ok"===o.type||["confirm","prompt"].indexOf(t.type)!==-1&&["ok","cancel"].indexOf(o.type)!==-1)&&(o.element=n(o.template),e.push(o))}return e},buildButtonObject:function(t){var e={},n=t.type||"custom",i=this.dialogButtons,o=["ok","cancel","custom"];if("undefined"!=typeof t.type&&o.indexOf(t.type)===-1)throw new Error('Wrong button type: "'+t.type+'". Valid values: "'+o.join('", "')+'"');return e.type=n,e.label="undefined"!=typeof t.label?t.label:i[n].label,e.autoClose="undefined"!=typeof t.autoClose?t.autoClose:i[n].autoClose,e.template="undefined"!=typeof t.template?t.template:i[n].template,e.click="undefined"!=typeof t.click?t.click:i[n].click,e},close:function(t,e){e=e&&!isNaN(+e)?+e:this.logDelay,e<0?d(t):e>0&&setTimeout(function(){d(t)},e)},dialog:function(t,e,n){return this.setup({type:e,message:t,buttons:n})},log:function(t,e,n){if(r&&r.elements.length){var i=r.elements.length-this.logMaxItems;if(i>=0)for(var o=0,a=i+1;o<a;o++)this.close(r.elements[o],-1)}this.notify(t,e,n)},setLogContainerClass:function(e){this.logContainerClass=t.logContainerClass+" "+e},setLogPosition:function(t){var e=t.split(" ");["top","bottom"].indexOf(e[0])!==-1&&["left","right"].indexOf(e[1])!==-1&&(this.logPosition=t)},setupLogContainer:function(){var t=this.logContainerClass+" "+this.logPosition,e=r&&r.container.parentNode!==this.parent;r&&!e||(e&&d(r.container),r={},r.container=document.createElement("div"),r.container.className=t,this.parent.appendChild(r.container)),r.container.className!==t&&(r.container.className=t)},notify:function(t,e,o){this.setupLogContainer();var l={},u={};l.dom=u,u.wrapper=n(this.templates.logMessage),u.message=i(u.wrapper,"alertify-log-msg"),a(u.message,e),s.logTemplateMethod?u.message.innerHTML=s.logTemplateMethod(t):u.message.innerHTML=t,l.closeLog=function(){d(u.wrapper)},"function"==typeof o&&u.wrapper.addEventListener("click",function(t){o(t,l)}),r.elements||(r.elements=[]),r.elements.push(u.wrapper),r.container.appendChild(u.wrapper),setTimeout(function(){u.wrapper.className+=" show"},10),this.close(u.wrapper,this.logDelay)},setup:function(t){function n(t){"function"!=typeof t&&(t=function(){});for(var e=0;e<l.length;e++){var n=l[e],o=function(e){return function(n){a=e,e.click&&"function"==typeof e.click&&e.click(n,r),t({ui:r,event:n}),e.autoClose===!0&&r.closeDialog()}}(n);n.element.addEventListener("click",o)}u&&u.addEventListener("keyup",function(t){13===t.which&&i.click()})}for(var i,a,l=this.createButtonsDefinition(t),s=this.build(t,l),r={},u=s.input,c=0;c<l.length;c++)"ok"===l[c].type&&(i=l[c].element);u&&"string"==typeof this.promptValue&&(u.value=this.promptValue),r.dom=s,r.closeDialog=function(){d(s.container)},r.centerDialog=function(){e(s.wrapper)},r.setMessage=function(t){s.message.innerHTML=t},r.setContent=function(t){s.content.innerHTML=t},r.getInputValue=function(){if(s.input)return s.input.value},r.getButtonObject=function(){if(a)return{type:a.type,label:a.label,autoClose:a.autoClose,element:a.element}};var p;return"function"==typeof Promise?p=new Promise(n):n(),this.dialogPersistent===!1&&s.container.addEventListener("click",function(t){t.target!==this&&t.target!==s.wrapper||d(s.container)}),window.onresize=function(){r.centerDialog()},this.parent.appendChild(s.container),setTimeout(function(){o(s.container,"hide"),r.centerDialog(),u&&t.type&&"prompt"===t.type?(u.select(),u.focus()):i&&i.focus()},100),p},setDelay:function(e){return e=e||0,this.logDelay=isNaN(e)?t.logDelay:parseInt(e,10),this},setLogMaxItems:function(e){this.logMaxItems=parseInt(e||t.logMaxItems)},setDialogWidth:function(e){"number"==typeof e&&(e+="px"),this.dialogWidth="string"==typeof e?e:t.dialogWidth},setDialogPersistent:function(t){this.dialogPersistent=t},setDialogContainerClass:function(e){this.dialogContainerClass=t.dialogContainerClass+" "+e},setTheme:function(e){if(e){if("string"==typeof e)switch(e.toLowerCase()){case"bootstrap":this.dialogButtons.ok.template='<button data-alertify-btn="ok" class="btn btn-primary" tabindex="1"></button>',this.dialogButtons.cancel.template='<button data-alertify-btn="cancel" class="btn btn-danger" tabindex="2"></button>',this.dialogButtons.custom.template='<button data-alertify-btn="custom" class="btn btn-default" tabindex="3"></button>',this.templates.dialogInput="<input data-alertify-input class='form-control' type='text'>";break;case"purecss":this.dialogButtons.ok.template='<button data-alertify-btn="ok" class="pure-button" tabindex="1"></button>',this.dialogButtons.cancel.template='<button data-alertify-btn="cancel" class="pure-button" tabindex="2"></button>',this.dialogButtons.custom.template='<button data-alertify-btn="custom" class="pure-button" tabindex="3"></button>';break;case"mdl":case"material-design-light":this.dialogButtons.ok.template='<button data-alertify-btn="ok" class=" mdl-button mdl-js-button mdl-js-ripple-effect"  tabindex="1"></button>',this.dialogButtons.cancel.template='<button data-alertify-btn="cancel" class=" mdl-button mdl-js-button mdl-js-ripple-effect" tabindex="2"></button>',this.dialogButtons.custom.template='<button data-alertify-btn="custom" class=" mdl-button mdl-js-button mdl-js-ripple-effect" tabindex="3"></button>',this.templates.dialogInput='<div class="mdl-textfield mdl-js-textfield"><input data-alertify-input class="mdl-textfield__input"></div>';break;case"angular-material":this.dialogButtons.ok.template='<button data-alertify-btn="ok" class="md-primary md-button" tabindex="1"></button>',this.dialogButtons.cancel.template='<button data-alertify-btn="cancel" class="md-button" tabindex="2"></button>',this.dialogButtons.custom.template='<button data-alertify-btn="custom" class="md-button" tabindex="3"></button>',this.templates.dialogInput='<div layout="column"><md-input-container md-no-float><input data-alertify-input type="text"></md-input-container></div>';break;case"default":default:this.dialogButtons=l(t.dialogButtons),this.templates=l(t.templates)}if("object"==typeof e){var n=Object.keys(this.templates);for(var i in e){if(n.indexOf(i)===-1)throw new Error('Wrong template name: "'+i+'". Valid values: "'+n.join('", "')+'"');this.templates[i]=e[i]}}}},reset:function(){this.setTheme("default"),this.parent=t.parent,this.dialogWidth=t.dialogWidth,this.dialogPersistent=t.dialogPersistent,this.dialogContainerClass=t.dialogContainerClass,this.promptValue="",this.logDelay=t.logDelay,this.logMaxItems=t.logMaxItems,this.logPosition=t.logPosition,this.logContainerClass=t.logContainerClass,this.logTemplateMethod=null},injectCSS:function(){if(!document.querySelector("#alertifyCSS")){var t=document.getElementsByTagName("head")[0],e=document.createElement("style");e.type="text/css",e.id="alertifyCSS",t.insertBefore(e,t.firstChild)}},removeCSS:function(){var t=document.querySelector("#alertifyCSS");t&&t.parentNode&&t.parentNode.removeChild(t)}};return s.injectCSS(),{_$alertify:s,_$defaults:t,parent:function(t){s.parent=t},reset:function(){return s.reset(),this},dialog:function(t,e){return s.dialog(t,"dialog",e)||this},alert:function(t,e){return e=e||{},e.type="ok",s.dialog(t,"alert",[e])||this},confirm:function(t,e,n){return e=e||{},n=n||{},e.type="ok",n.type="cancel",s.dialog(t,"confirm",[e,n])||this},prompt:function(t,e,n){return e=e||{},n=n||{},e.type="ok",n.type="cancel",s.dialog(t,"prompt",[e,n])||this},log:function(t,e){return s.log(t,"default",e),this},success:function(t,e){return s.log(t,"success",e),this},warning:function(t,e){return s.log(t,"warning",e),this},error:function(t,e){return s.log(t,"error",e),this},dialogWidth:function(t){return s.setDialogWidth(t),this},dialogPersistent:function(t){return s.setDialogPersistent(t),this},dialogContainerClass:function(t){return s.setDialogContainerClass(t||""),this},delay:function(t){return s.setDelay(t),this},inputDefaultValue:function(t){return s.promptValue=t,this},logMaxItems:function(t){return s.setLogMaxItems(t),this},logPosition:function(t){return s.setLogPosition(t||""),this},logContainerClass:function(t){return s.setLogContainerClass(t||""),this},logMessageTemplate:function(t){return s.logTemplateMethod=t,this},theme:function(t){return s.setTheme(t),this},clearDialogs:function(){for(var e;e=s.parent.querySelector(":scope > ."+t.dialogContainerClass);)s.parent.removeChild(e);return this},clearLogs:function(){return r&&(r.container.innerHTML=""),this},version:s.version}}var r,u=500,d=function(t){if(t){var e=function(){t&&t.parentNode&&t.parentNode.removeChild(t)};o(t,"show"),a(t,"hide"),t.addEventListener("transitionend",e),setTimeout(e,u)}};if("undefined"!=typeof t&&t&&t.exports){t.exports=function(){return new s};var c=new s;for(var p in c)t.exports[p]=c[p]}else"function"==typeof define&&define.amd?define(function(){return new s}):window.alertify=new s}();var e=t.exports;return new e});
 /*eslint strict: [2, "global"], global: {ga: false} */
 "use strict";
 
@@ -393,7 +393,7 @@ angular.module("ngAlertify",[]).factory("alertify",function(){"use strict";var t
     // Prompt Dialog
     demo("#prompt", function (event) {
         alertify
-            .defaultValue("Default value")
+            .inputDefaultValue("Default value")
             .prompt("This is a prompt dialog",
             {
                 click: function (e, ui) {
@@ -533,12 +533,12 @@ angular.module("ngAlertify",[]).factory("alertify",function(){"use strict";var t
                     }
                 }
             },{
+                type: "custom",
                 label: "New quiz",
                 autoClose: false,
                 click: function (e, ui) {
                     buildQuiz(ui);
-                },
-                template: '<button data-alertify-btn style="font-weight: bold"></button>'
+                }
             },{
                 type: "cancel",
                 label: "Close"
@@ -601,37 +601,68 @@ angular.module("ngAlertify",[]).factory("alertify",function(){"use strict";var t
             });
     });
 
-    demo("#click-to-close", function (event) {
-        alertify
-            .closeLogOnClick(true)
-            .log("Click me to close!");
+
+    /********** Log Messages **********/
+
+    // ==============================
+    // Standard Log
+    demo("#notification", function (event) {
+        alertify.log("Standard log message");
     });
 
-    demo("#disable-click-to-close", function (event) {
-        alertify
-            .closeLogOnClick(true)
-            .log("Click me to close!")
-            .closeLogOnClick(false)
-            .log("You can't click to close this!");
+    // ==============================
+    // Log types
+    demo("#success", function (event) {
+        alertify.success("Success log message");
+    });
+    demo("#warning", function (event) {
+        alertify.warning("Warning log message");
+    });
+    demo("#error", function (event) {
+        alertify.error("Error log message");
     });
 
-    demo("#reset", function (event) {
-        alertify
-            .reset()
-            .alert("Custom values were reset", {
-                label: "Go For It!"
-            });
+    // ==============================
+    // Log With HTML
+    demo("#notification-html", function (event) {
+        alertify.log("<img src='https://placehold.it/256x128'><h3>This is HTML</h3><p>It's great, right?</p>");
     });
 
-    demo("#log-template", function (event) {
-        alertify
-            .logMessageTemplate(function (input) { return 'log message: ' + input; })
-            .log("This is the message");
+    // ==============================
+    // Log with callback
+    demo("#notification-callback", function(event) {
+        alertify.log("Log message with callback", function(e, ui) {
+            // you can use click event here
+            e.preventDefault();
+
+            // method to close current log message
+            ui.closeLog();
+
+            alertify.log("You clicked the notification");
+        });
     });
 
+    // ==============================
+    // Hide in 10 seconds
+    demo("#delay", function (event) {
+        alertify
+            .logDelay(10000)
+            .log("Hiding in 10 seconds");
+    });
+
+    // ==============================
+    // Persistent Log
+    demo("#forever", function (event) {
+        alertify
+            .logDelay(0)
+            .log("Will stay until clicked");
+    });
+
+    // ==============================
+    // Maximum Number of Log Messages
     demo("#max-log-items", function (event) {
         alertify
-            .maxLogItems(1)
+            .logMaxItems(1)
             .log("This is the first message");
 
         // The timeout is just for visual effect.
@@ -641,63 +672,17 @@ angular.module("ngAlertify",[]).factory("alertify",function(){"use strict";var t
     });
 
     // ==============================
-    // Standard Dialogs
-    demo("#notification", function (event) {
-        alertify.log("Standard log message");
-    });
-
-    demo("#notification-html", function (event) {
-        alertify.log("<img src='https://placehold.it/256x128'><h3>This is HTML</h3><p>It's great, right?</p>");
-    });
-
-    demo("#notification-callback", function(event) {
-        alertify.log("Standard log message with callback", function(ev) {
-            ev.preventDefault();
-            alertify.log("You clicked the notification");
-        });
-    });
-
-    demo("#success", function (event) {
-        alertify.success("Success log message");
-    });
-
-    demo("#success-callback", function(event) {
-        alertify.success("Standard log message with callback", function() {
-            alertify.success("You clicked the notification");
-        });
-    });
-
-    demo("#warning", function (event) {
-        alertify.warning("Warning log message");
-    });
-
-    demo("#error", function (event) {
-        alertify.error("Error log message");
-    });
-
-    demo("#error-callback", function(event) {
-        alertify.error("Standard log message with callback", function(ev) {
-            ev.preventDefault();
-            alertify.error("You clicked the notification");
-        });
+    // Template for Log messages
+    demo("#log-message-template", function (event) {
+        alertify
+            .logMessageTemplate(function (input) { return 'log message: ' + input; })
+            .log("This is the message");
     });
 
     // ==============================
-    // Custom Properties
-    demo("#delay", function (event) {
-        alertify
-            .delay(10000)
-            .log("Hiding in 10 seconds");
-    });
-
-    demo("#forever", function (event) {
-        alertify
-            .delay(0)
-            .log("Will stay until clicked");
-    });
-
+    // Setting the Position
     demo("#log-position", function(event) {
-        alertify.delay(1000); // This is just to make the demo go faster.
+        alertify.logDelay(1000); // This is just to make the demo go faster.
         alertify.log("Default bottom left position");
         setTimeout(function() {
             alertify.logPosition("top left");
@@ -717,6 +702,75 @@ angular.module("ngAlertify",[]).factory("alertify",function(){"use strict";var t
         }, 6000);
     });
 
+
+    /********** Template Customization **********/
+
+    // ==============================
+    // Predefined themes
+    demo("#theme-predefined", function (event) {
+        alertify
+            .theme("bootstrap")
+            .inputDefaultValue("Default value")
+            .prompt("Bootstrap theme message");
+    });
+
+    demo("#theme-reset", function (event) {
+        alertify
+            .theme("default")
+            .prompt("Default theme message");
+    });
+
+    // ==============================
+    // Log templates
+    demo("#template-log", function (event) {
+        alertify.
+            theme({
+                logMessage: '<div class="wrapper">' +
+                    '<div data-alertify-log-msg style="background: rgb(78, 150, 193);"></div>' +
+                    '</div>'
+            })
+            .log("Log message with custom theme.")
+            .reset();
+    });
+
+    // ==============================
+    // Dialog templates
+    demo("#template-dialog", function (event) {
+        alertify.
+            theme({
+                dialogMessage: '<div style="text-align: center; color: #3F51B5;">' +
+                    '<div data-alertify-msg style="font-weight: bold"></div>' +
+                    '</div>',
+                dialogInput: '<div>' +
+                    '<label for="template-dialog-input">LABEL - click to focus:</label>' +
+                    '<input data-alertify-input id="template-dialog-input" type="text">' +
+                    '<div style="font-size: 12px">Note: write any text to the input.</div>' +
+                    '</div>',
+                dialogButtonsHolder: '<nav data-alertify-btn-holder style="text-align: center"></nav>'
+            })
+            .inputDefaultValue("Default")
+            .prompt("Dialog prompt with custom template.",
+            {
+                click: function (e, ui) {
+                    alertify.success("You've typed: " + ui.getInputValue());
+                }
+            })
+            .reset();
+    });
+
+
+    /********** Other Options **********/
+
+    // ==============================
+    // Reset
+    demo("#reset", function (event) {
+        alertify
+            .reset()
+            .alert("Custom values were reset", {
+                label: "Go For It!"
+            });
+    });
+
 })();
 
 var app = angular.module("alertifyDemo", ["ngAlertify"]);
@@ -727,15 +781,14 @@ app.controller("alertifyLogDemoCtrl", function($scope, $log, alertify) {
     $scope.log = alertify.log;
     $scope.error = alertify.error;
     $scope.success = alertify.success;
-    $scope.maxLogItems = 2;
-    $scope.delay = 5000;
+    $scope.logMaxItems = 2;
+    $scope.logDelay = 5000;
 
     $scope.show = function(msg) {
         alertify[$scope.type](msg);
     };
 
-    $scope.$watch("closeLogOnClick", alertify.closeLogOnClick);
-    $scope.$watch("maxLogItems", alertify.maxLogItems);
-    $scope.$watch("delay", alertify.delay);
+    $scope.$watch("logMaxItems", alertify.logMaxItems);
+    $scope.$watch("logDelay", alertify.logDelay);
 
 });
