@@ -32,28 +32,21 @@
     // ==============================
     // Alert Dialog
     demo("#alert", function (event) {
-        alertify.alert("This is an alert dialog");
+        alertify
+            .alert("This is an alert dialog", function (e, ui) {
+                // you can handle click event here
+                e.preventDefault();
+            });
     });
 
     // ==============================
     // Confirm Dialog
     demo("#confirm", function (event) {
         alertify
-            .confirm("This is a confirm dialog",
-            {
-                click: function (e, ui) {
-                    // The click event is in the event variable, so you can use it here.
-                    e.preventDefault();
-
-                    alertify.success("You've clicked \"OK\"");
-                }
-            },{
-                click: function (e, ui) {
-                    // The click event is in the event variable, so you can use it here.
-                    e.preventDefault();
-
-                    alertify.error("You've clicked \"Cancel\"");
-                }
+            .confirm("This is a confirm dialog", function (e, ui) {
+                alertify.success("You've clicked 'OK'");
+            }, function (e, ui) {
+                alertify.error("You've clicked 'Cancel'");
             });
     });
 
@@ -61,22 +54,13 @@
     // Prompt Dialog
     demo("#prompt", function (event) {
         alertify
-            .inputDefaultValue("Default value")
-            .prompt("This is a prompt dialog",
-            {
-                click: function (e, ui) {
-                    e.preventDefault();
+            .prompt("This is a prompt dialog", "Default value", function (e, ui) {
+                // the value entered in the prompt input
+                var inputValue = ui.getInputValue();
 
-                    // the value entered in the prompt input
-                    var inputValue = ui.getInputValue();
-
-                    alertify.success("You've clicked \"OK\" and typed: " + inputValue);
-                }
-            },{
-                click: function (e, ui) {
-                    e.preventDefault();
-                    alertify.error("You've clicked \"Cancel\"");
-                }
+                alertify.success("You've clicked 'OK' and typed: " + inputValue);
+            }, function (e, ui) {
+                alertify.error("You've clicked 'Cancel'");
             });
     });
 
@@ -378,7 +362,6 @@
     demo("#theme-predefined", function (event) {
         alertify
             .theme("bootstrap")
-            .inputDefaultValue("Default value")
             .prompt("Bootstrap theme message");
     });
 
@@ -416,8 +399,7 @@
                     '</div>',
                 dialogButtonsHolder: '<nav data-alertify-btn-holder style="text-align: center"></nav>'
             })
-            .inputDefaultValue("Default")
-            .prompt("Dialog prompt with custom template.",
+            .prompt("Dialog prompt with custom template.", "Default value",
             {
                 click: function (e, ui) {
                     alertify.success("You've typed: " + ui.getInputValue());

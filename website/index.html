@@ -182,15 +182,19 @@ angular
               <div class="mdl-cell mdl-cell--8-col mdl-cell--5-col-desktop left-col">
                 <h5 class="mdl-typeography--headline">Alert Dialog</h5>
                 <p>
-                  Dialogs display a text and require
-                  user to acknowledge the message.
+                  Dialogs display a text and require user to acknowledge the message.
+                  You can use click callback function as a second argument.
                 </p>
                 <a class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect" id="alert">Try It</a><br>
               </div>
               <div class="mdl-cell mdl-cell--8-col mdl-cell--7-col-desktop right-col">
                 <h5 class="mdl-typeography--headline">Code Example</h5>
 <pre>
-alertify.alert("Message");
+alertify
+    .alert("This is an alert dialog", function (e, ui) {
+        // you can handle click event here
+        e.preventDefault();
+    });
 </pre>
               </div>
             </div>
@@ -198,28 +202,20 @@ alertify.alert("Message");
             <div class="mdl-grid">
               <div class="mdl-cell mdl-cell--8-col mdl-cell--5-col-desktop left-col">
                 <h5 class="mdl-typeography--headline">Confirm Dialog</h5>
-                <p></p>
+                <p>
+                    Confirm and prompt dialogs have 2 callback functions
+                    for the each button.
+                </p>
                 <a class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect" id="confirm">Try It</a><br>
               </div>
               <div class="mdl-cell mdl-cell--8-col mdl-cell--7-col-desktop right-col">
                 <h5 class="mdl-typeography--headline">Code Example</h5>
 <pre>
 alertify
-    .confirm("This is a confirm dialog",
-    {
-        click: function (e, ui) {
-            // you can use click event here
-            e.preventDefault();
-
-            alertify.success("You've clicked OK");
-        }
-    },{
-        click: function (e, ui) {
-            // you can use click event here
-            e.preventDefault();
-
-            alertify.error("You've clicked Cancel");
-        }
+    .confirm("This is a confirm dialog", function (e, ui) {
+        alertify.success("You've clicked 'OK'");
+    }, function (e, ui) {
+        alertify.error("You've clicked 'Cancel'");
     });
 </pre>
               </div>
@@ -228,29 +224,23 @@ alertify
             <div class="mdl-grid">
               <div class="mdl-cell mdl-cell--8-col mdl-cell--5-col-desktop left-col">
                 <h5 class="mdl-typeography--headline">Prompt Dialog</h5>
-                <p></p>
+                <p>
+                    Use "ui.getInputValue()" method inside a click callback
+                    to retrieve the input value.
+                </p>
                 <a class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect" id="prompt">Try It</a>
               </div>
               <div class="mdl-cell mdl-cell--8-col mdl-cell--7-col-desktop right-col">
                 <h5 class="mdl-typeography--headline">Code Example</h5>
 <pre>
 alertify
-    .inputDefaultValue("Default value")
-    .prompt("This is a prompt dialog",
-    {
-        click: function (e, ui) {
-            e.preventDefault();
+    .prompt("This is a prompt dialog", "Default value", function (e, ui) {
+        // the value entered in the prompt input
+        var inputValue = ui.getInputValue();
 
-            // the value entered in the prompt input
-            var inputValue = ui.getInputValue();
-
-            alertify.success("You've clicked OK and typed: " + inputValue);
-        }
-    },{
-        click: function (e, ui) {
-            e.preventDefault();
-            alertify.error("You've clicked Cancel");
-        }
+        alertify.success("You've clicked 'OK' and typed: " + inputValue);
+    }, function (e, ui) {
+        alertify.error("You've clicked 'Cancel'");
     });
 </pre>
               </div>
@@ -816,8 +806,7 @@ alertify.parent(elem);
                 <h5 class="mdl-typeography--headline">Code Example</h5>
 <pre>
 alertify
-    .theme("booinputDstrap")
-    .defaultValue("Default value")
+    .theme("bootstrap")
     .prompt("Bootstrap theme message");
 </pre>
 <pre>
@@ -881,8 +870,7 @@ alertify.
             '&lt;/div&gt;',
         dialogButtonsHolder: '&lt;nav <b>data-alertify-btn-holder</b> style="text-align: center"&gt;&lt;/nav&gt;'
     })
-    .inputDefaultValue("Default")
-    .prompt("Dialog prompt with custom template.",
+    .prompt("Dialog prompt with custom template.", "Default value",
     {
         click: function (e, ui) {
             alertify.success("You've typed: " + ui.getInputValue());

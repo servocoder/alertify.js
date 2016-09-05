@@ -189,6 +189,20 @@
                 return dom;
             },
 
+            prepareDialogButton: function(type, button) {
+                var buttonObject = {};
+                if(button && typeof button === "object" && !(button instanceof Array)) {
+                    console.log('OBJECT', button);
+                    buttonObject = button;
+                }
+                if(typeof button === "function") {
+                    console.log('FUNCTION', button);
+                    buttonObject.click = button;
+                }
+                buttonObject.type = type;
+                return buttonObject;
+            },
+
             createButtonsDefinition: function(item) {
                 var definitions = [];
                 for (var i = 0; i < item.buttons.length; i++) {
@@ -625,23 +639,23 @@
                 return _alertify.dialog(message, "dialog", buttons) || this;
             },
             alert: function(message, okButton) {
-                okButton = okButton || {};
-                okButton.type = "ok";
-                return _alertify.dialog(message, "alert", [okButton]) || this;
+                var buttons = [_alertify.prepareDialogButton("ok", okButton)];
+                return _alertify.dialog(message, "alert", buttons) || this;
             },
             confirm: function(message, okButton, cancelButton) {
-                okButton = okButton || {};
-                cancelButton = cancelButton || {};
-                okButton.type = "ok";
-                cancelButton.type = "cancel";
-                return _alertify.dialog(message, "confirm", [okButton, cancelButton]) || this;
+                var buttons = [
+                    _alertify.prepareDialogButton("ok", okButton),
+                    _alertify.prepareDialogButton("cancel", cancelButton)
+                ];
+                return _alertify.dialog(message, "confirm", buttons) || this;
             },
-            prompt: function(message, okButton, cancelButton) {
-                okButton = okButton || {};
-                cancelButton = cancelButton || {};
-                okButton.type = "ok";
-                cancelButton.type = "cancel";
-                return _alertify.dialog(message, "prompt", [okButton, cancelButton]) || this;
+            prompt: function(message, defaultValue, okButton, cancelButton) {
+                var buttons = [
+                    _alertify.prepareDialogButton("ok", okButton),
+                    _alertify.prepareDialogButton("cancel", cancelButton)
+                ];
+                _alertify.promptValue = defaultValue || '';
+                return _alertify.dialog(message, "prompt", buttons) || this;
             },
             log: function(message, click) {
                 _alertify.log(message, "default", click);
@@ -673,10 +687,6 @@
             },
             delay: function(time) {
                 _alertify.setDelay(time);
-                return this;
-            },
-            inputDefaultValue: function(str) {
-                _alertify.promptValue = str;
                 return this;
             },
             logMaxItems: function(num) {
