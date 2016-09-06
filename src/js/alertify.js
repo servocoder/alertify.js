@@ -192,11 +192,9 @@
             prepareDialogButton: function(type, button) {
                 var buttonObject = {};
                 if(button && typeof button === "object" && !(button instanceof Array)) {
-                    console.log('OBJECT', button);
                     buttonObject = button;
                 }
                 if(typeof button === "function") {
-                    console.log('FUNCTION', button);
                     buttonObject.click = button;
                 }
                 buttonObject.type = type;
@@ -519,7 +517,7 @@
                 return promise;
             },
 
-            setDelay: function(time) {
+            setLogDelay: function(time) {
                 time = time || 0;
                 this.logDelay = isNaN(time) ? _defaults.logDelay : parseInt(time, 10);
                 return this;
@@ -685,8 +683,8 @@
                 _alertify.setDialogContainerClass(str || "");
                 return this;
             },
-            delay: function(time) {
-                _alertify.setDelay(time);
+            logDelay: function(time) {
+                _alertify.setLogDelay(time);
                 return this;
             },
             logMaxItems: function(num) {

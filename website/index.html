@@ -225,7 +225,7 @@ alertify
               <div class="mdl-cell mdl-cell--8-col mdl-cell--5-col-desktop left-col">
                 <h5 class="mdl-typeography--headline">Prompt Dialog</h5>
                 <p>
-                    Use "ui.getInputValue()" method inside a click callback
+                    Use "<b>ui.getInputValue()</b>" method inside a click callback
                     to retrieve the input value.
                 </p>
                 <a class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect" id="prompt">Try It</a>
@@ -250,8 +250,11 @@ alertify
               <div class="mdl-cell mdl-cell--8-col mdl-cell--5-col-desktop left-col">
                 <h5 class="mdl-typeography--headline">Custom Button Labels</h5>
                 <p>
-                  You're not limited to the "Ok" and "Cancel" button labels.
-                  You can easily set your own labels.
+                    You're not limited to the "Ok" and "Cancel" button labels.
+                    You can easily set your own labels. For that purpose you
+                    have to use object instead of callback function for each button.
+                    Use "<b>label</b>" property to set custom labels and the callback
+                    function should be assigned to "<b>click</b>" property of the object.
                 </p>
                 <a class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect" id="custom-labels">Try It</a>
               </div>
@@ -281,9 +284,10 @@ alertify
               <div class="mdl-cell mdl-cell--8-col mdl-cell--5-col-desktop left-col">
                 <h5 class="mdl-typeography--headline">Persistent Buttons</h5>
                 <p>
-                  If you don't need not to automatically close a dialog while clicking a
-                  button, you can set "autoClose" button property to "false". You are able
-                  to close the dialog programmatically inside the "click" callback function.
+                    If you don't need not to automatically close a dialog while clicking a
+                    button, you can set "<b>autoClose</b>" button object property to "false".
+                    You are able to close the dialog programmatically inside the "click"
+                    callback function with "<b>ui.closeDialog()</b>" method.
                 </p>
                 <a class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect" id="autoclose-buttons">Try It</a>
               </div>
@@ -625,12 +629,10 @@ alertify.log(msg);
               <div class="mdl-cell mdl-cell--8-col mdl-cell--5-col-desktop left-col">
                 <h5 class="mdl-typeography--headline">Log with callback</h5>
                 <p>
-                    Keep in mind that the when setting a callback, clicking the log message
-                    doesn't automatically close the log message, which is different than
-                    previous functionality. This means that the callback could be called
-                    multiple times if the user clicks multiple times. If you're callback is
-                    an action that must be completed only once, you'll need to keep track
-                    of that separately.
+                    Keep in mind that the current log are not going to close automatically
+                    if you call another one, as it is implemented inside the callback function
+                    in example. To force log closing use "<b>ui.closeLog()</b>"
+                    inside the callback function.
                 </p>
                 <a class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect" id="notification-callback">Try It</a>
               </div>
@@ -671,8 +673,9 @@ alertify
                 <h5 class="mdl-typeography--headline">Persistent Log</h5>
                 <p>
                   Persistent log messages will stay until clicked
-                  (if closeLogOnClick(true) is set) or until forcibly removed
-                  when the number of messages exceeds the "logMaxItems" setting.
+                  (if "<b>ui.closeLog()</b>" is used inside callback function) or until forcibly
+                  removed when the number of messages exceeds the "<b>logMaxItems</b>" setting.
+                  See below.
                 </p>
                 <a class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect" id="forever">Try It</a>
               </div>
@@ -681,7 +684,9 @@ alertify
 <pre>
 alertify
     .logDelay(0)
-    .log("Will stay until clicked");
+    .log("Will stay until clicked", function(e, ui) {
+        ui.closeLog();
+    });
 </pre>
               </div>
             </div>
@@ -875,8 +880,10 @@ alertify.
         click: function (e, ui) {
             alertify.success("You've typed: " + ui.getInputValue());
         }
-    })
-    .reset(); // set default options
+    });
+
+    // set default options
+    setTimeout(function() {alertify.reset()}, 500);
 </pre>
 <pre>
 alertify.
@@ -885,8 +892,10 @@ alertify.
             &lt;div <b>data-alertify-log-msg</b> style="background: rgb(78, 150, 193);"&gt;&lt;/div&gt;
             &lt;/div&gt;'
     })
-    .log("Log message with custom template.")
-    .reset(); // set default options
+    .log("Log message with custom template.");
+
+    // set default options
+    setTimeout(function() {alertify.reset()}, 500);
 </pre>
               </div>
             </div>

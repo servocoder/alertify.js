@@ -307,7 +307,9 @@
     demo("#forever", function (event) {
         alertify
             .logDelay(0)
-            .log("Will stay until clicked");
+            .log("Will stay until clicked", function(e, ui) {
+                ui.closeLog();
+            });
     });
 
     // ==============================
@@ -380,8 +382,10 @@
                     '<div data-alertify-log-msg style="background: rgb(78, 150, 193);"></div>' +
                     '</div>'
             })
-            .log("Log message with custom theme.")
-            .reset();
+            .log("Log message with custom theme.");
+
+        // set default options
+        setTimeout(function() {alertify.reset()}, 500);
     });
 
     // ==============================
@@ -404,8 +408,10 @@
                 click: function (e, ui) {
                     alertify.success("You've typed: " + ui.getInputValue());
                 }
-            })
-            .reset();
+            });
+
+        // set default options
+        setTimeout(function() {alertify.reset()}, 500);
     });
 
 
